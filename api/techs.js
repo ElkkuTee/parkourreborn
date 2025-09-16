@@ -2,19 +2,15 @@ import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
 
-
-// Parse service account JSON string
-let serviceAccount;
-try {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n"); // fix line breaks
-} catch (err) {
-  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT:", err);
-}
-
-if (!admin.apps.length && serviceAccount) {
+// Initialize Firebase only once
+if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Convert escaped \n into real line breaks
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    }),
   });
 }
 
