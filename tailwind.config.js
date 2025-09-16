@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        'pr-neon': '#00BFFF',
+        'pr-neon': 'rgb(var(--pr-neon) / <alpha-value>)',
         'pr-dark': '#111827',
       },
     },

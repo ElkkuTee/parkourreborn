@@ -9,7 +9,9 @@ function App() {
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
-  const [currentTheme, setCurrentTheme] = useState("blue");
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem("theme") || "blue";
+  });
 
   const fetchTechs = async () => {
     setLoading(true);
@@ -40,6 +42,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", currentTheme);
+    localStorage.setItem("theme", currentTheme);
   }, [currentTheme]);
 
   const handleThemeChange = (theme) => {
