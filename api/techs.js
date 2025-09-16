@@ -1,14 +1,14 @@
+// src/api/techs.js
 import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
 
-// Initialize Firebase only once
+// Initialize Firebase Admin with environment variables
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // Convert escaped \n into real line breaks
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
@@ -16,7 +16,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// Create express app
+// Create Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -31,31 +31,30 @@ app.get("/api/techs", async (req, res) => {
 
     let query = db.collection("techs");
 
-    // Filtering by difficulty
+    // Filter by difficulty
     if (difficulty) {
       query = query.where("difficulty", "==", Number(difficulty));
     }
 
-    // Execute query
     const snapshot = await query.get();
-    let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    // Filtering by search keyword (in-memory, simple match)
+    // Filter by search keyword (in-memory)
     if (search) {
       const lower = search.toLowerCase();
       data = data.filter(
-        tech =>
+        (tech) =>
           tech.name.toLowerCase().includes(lower) ||
           tech.description.toLowerCase().includes(lower) ||
-          (tech.tags && tech.tags.some(tag => tag.toLowerCase().includes(lower)))
+          (tech.tags && tech.tags.some((tag) => tag.toLowerCase().includes(lower)))
       );
     }
 
-    // Filtering by tags (comma-separated)
+    // Filter by tags (comma-separated)
     if (tags) {
       const tagArray = tags.split(",");
-      data = data.filter(tech =>
-        tagArray.every(tag => tech.tags && tech.tags.includes(tag))
+      data = data.filter((tech) =>
+        tagArray.every((tag) => tech.tags && tech.tags.includes(tag))
       );
     }
 
@@ -95,9 +94,10 @@ app.get("/api/techs/:id", async (req, res) => {
     }
     res.json({ id: doc.id, ...doc.data() });
   } catch (err) {
+    console.error("Error fetching tech:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Export the Express app as the default export for Vercel
+// Export Express app for Vercel
 export default app;
