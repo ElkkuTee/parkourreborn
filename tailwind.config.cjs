@@ -1,14 +1,9 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './index.html',
-    './src/**/*.{js,jsx,ts,tsx}'
-  ],
+  content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        'pr-dark': '#0b0f12',
-        'pr-neon': '#00bfff',
+        "pr-neon": "#00BFFF", // neon blue
       },
     },
   },
