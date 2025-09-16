@@ -8,7 +8,7 @@ export default function ThemeSwitch({ currentTheme, onThemeChange }) {
   ];
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex gap-2">
+    <div className="fixed top-0 right-0 z-50 flex gap-2 p-4 bg-gray-900/80 backdrop-blur-sm">
       {themes.map((theme) => (
         <button
           key={theme.id}
