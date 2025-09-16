@@ -1,6 +1,7 @@
-const express = require("express");
-const cors = require("cors");
-const admin = require("firebase-admin");
+import express from "express";
+import cors from "cors";
+import admin from "firebase-admin";
+
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 if (!admin.apps.length) {
@@ -15,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // GET /api/techs
-router.get("/", async (req, res) => {
+app.get("/", async (req, res) => {
   const { search, sort, difficulty, tags } = req.query;
   let snapshot = await db.collection("techs").get();
   let techs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -55,10 +56,10 @@ router.get("/", async (req, res) => {
 });
 
 // GET /api/techs/:id
-router.get("/:id", async (req, res) => {
+app.get("/:id", async (req, res) => {
   const doc = await db.collection("techs").doc(req.params.id).get();
   if (!doc.exists) return res.status(404).json({ error: "Not found" });
   res.json({ id: doc.id, ...doc.data() });
 });
 
-module.exports = app;
+export default app;
