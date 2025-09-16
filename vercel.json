@@ -15,7 +15,11 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/techs",
+      "dest": "api/techs.js"
+    },
+    {
+      "src": "/api/techs/(.*)",
       "dest": "api/techs.js"
     }
   ]

@@ -1,44 +1,35 @@
 import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
+import serverless from "serverless-http";
 
-// Initialize Firebase Admin with environment variables
+const serviceAccount = JSON.parse(
+  Buffer.from(process.env.FIREBASE_KEY_BASE64, "base64").toString("utf-8")
+);
+
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
 const db = admin.firestore();
 
-// Create Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-/**
- * GET /api/techs
- * Supports query params: search, sort, difficulty, tags
- */
 app.get("/api/techs", async (req, res) => {
   try {
     const { search, sort, difficulty, tags } = req.query;
 
     let query = db.collection("techs");
 
-    // Filter by difficulty
-    if (difficulty) {
-      query = query.where("difficulty", "==", Number(difficulty));
-    }
+    if (difficulty) query = query.where("difficulty", "==", Number(difficulty));
 
     const snapshot = await query.get();
     let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    // Filter by search keyword (in-memory)
     if (search) {
       const lower = search.toLowerCase();
       data = data.filter(
@@ -49,15 +40,11 @@ app.get("/api/techs", async (req, res) => {
       );
     }
 
-    // Filter by tags (comma-separated)
     if (tags) {
       const tagArray = tags.split(",");
-      data = data.filter((tech) =>
-        tagArray.every((tag) => tech.tags && tech.tags.includes(tag))
-      );
+      data = data.filter((tech) => tagArray.every((tag) => tech.tags && tech.tags.includes(tag)));
     }
 
-    // Sorting
     if (sort) {
       switch (sort) {
         case "az":
@@ -82,15 +69,10 @@ app.get("/api/techs", async (req, res) => {
   }
 });
 
-/**
- * GET /api/techs/:id
- */
 app.get("/api/techs/:id", async (req, res) => {
   try {
     const doc = await db.collection("techs").doc(req.params.id).get();
-    if (!doc.exists) {
-      return res.status(404).json({ error: "Tech not found" });
-    }
+    if (!doc.exists) return res.status(404).json({ error: "Tech not found" });
     res.json({ id: doc.id, ...doc.data() });
   } catch (err) {
     console.error("Error fetching tech:", err);
@@ -98,5 +80,5 @@ app.get("/api/techs/:id", async (req, res) => {
   }
 });
 
-// Export for Vercel
-export default app;
+// Wrap Express app for Vercel
+export default serverless(app);
