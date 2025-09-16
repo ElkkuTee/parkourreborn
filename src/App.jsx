@@ -4,15 +4,14 @@ import TechList from "./components/TechList";
 
 function App() {
   const [techs, setTechs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
-  const [loading, setLoading] = useState(false);
 
   const fetchTechs = async () => {
     setLoading(true);
     try {
-      // Build query params
       let query = [];
       if (search) query.push(`search=${encodeURIComponent(search)}`);
       if (tags.size > 0) query.push(`tags=${[...tags].join(",")}`);
@@ -20,10 +19,14 @@ function App() {
       const queryString = query.length ? "?" + query.join("&") : "";
 
       const res = await fetch(`/api/techs${queryString}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setTechs(data.data);
-    } catch (err) {
-      console.error("Fetch error:", err);
+      setTechs(data.data || []);
+    } catch (error) {
+      console.error("Error fetching techs:", error);
+      setTechs([]);
     } finally {
       setLoading(false);
     }
@@ -35,9 +38,26 @@ function App() {
 
   return (
     <div className="min-h-screen bg-pr-dark text-white p-6">
-      <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">Parkour Reborn Techs</h1>
-      <FiltersBar search={search} setSearch={setSearch} tags={tags} setTags={setTags} sort={sort} setSort={setSort} />
-      {loading ? <p>Loading...</p> : <TechList techs={techs} />}
+      <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
+        Parkour Reborn Techs
+      </h1>
+      
+      <FiltersBar 
+        search={search} 
+        setSearch={setSearch} 
+        tags={tags} 
+        setTags={setTags} 
+        sort={sort} 
+        setSort={setSort} 
+      />
+      
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-lg">Loading...</p>
+        </div>
+      ) : (
+        <TechList techs={techs} />
+      )}
     </div>
   );
 }

@@ -2,10 +2,8 @@ import React from "react";
 
 export default function TechCard({ tech }) {
   return (
-    <div
-      className="bg-gray-900 border-2 border-pr-neon rounded-2xl p-5 shadow-md 
-                 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-pr-neon/70 cursor-pointer"
-    >
+    <div className="bg-gray-900 border-2 border-pr-neon rounded-2xl p-5 shadow-md 
+                    transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:border-pr-neon/70 cursor-pointer">
       {/* Tech Name */}
       <h3 className="text-pr-neon text-xl font-extrabold mb-2 drop-shadow-lg">
         {tech.name}

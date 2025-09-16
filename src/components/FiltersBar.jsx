@@ -9,11 +9,9 @@ export default function FiltersBar({ search, setSearch, tags, setTags, sort, set
     { label: "Difficulty High–Low", value: "diff_desc" },
   ];
 
-  // Custom dropdown state
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
 
-  // Close dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -60,9 +58,8 @@ export default function FiltersBar({ search, setSearch, tags, setTags, sort, set
         ))}
       </div>
 
-      {/* Custom Neon Dropdown */}
+      {/* Custom Dropdown */}
       <div className="relative mt-2 md:mt-0 w-48" ref={dropdownRef}>
-        {/* Selected box */}
         <div
           className="cursor-pointer p-3 rounded-full bg-gray-800 text-white border-2 border-gray-700
                      flex justify-between items-center transition-all duration-300 hover:border-pr-neon"
@@ -80,7 +77,6 @@ export default function FiltersBar({ search, setSearch, tags, setTags, sort, set
           </svg>
         </div>
 
-        {/* Options menu */}
         {open && (
           <div className="absolute mt-2 w-full bg-gray-900 border-2 border-pr-neon rounded-2xl shadow-lg z-50">
             {dropdownOptions.map((opt) => (

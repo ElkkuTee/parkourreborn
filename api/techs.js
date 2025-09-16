@@ -1,4 +1,3 @@
-// src/api/techs.js
 import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
@@ -9,7 +8,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
     }),
   });
 }
@@ -44,8 +43,8 @@ app.get("/api/techs", async (req, res) => {
       const lower = search.toLowerCase();
       data = data.filter(
         (tech) =>
-          tech.name.toLowerCase().includes(lower) ||
-          tech.description.toLowerCase().includes(lower) ||
+          tech.name?.toLowerCase().includes(lower) ||
+          tech.description?.toLowerCase().includes(lower) ||
           (tech.tags && tech.tags.some((tag) => tag.toLowerCase().includes(lower)))
       );
     }
@@ -62,16 +61,16 @@ app.get("/api/techs", async (req, res) => {
     if (sort) {
       switch (sort) {
         case "az":
-          data.sort((a, b) => a.name.localeCompare(b.name));
+          data.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
           break;
         case "za":
-          data.sort((a, b) => b.name.localeCompare(a.name));
+          data.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
           break;
         case "diff_asc":
-          data.sort((a, b) => a.difficulty - b.difficulty);
+          data.sort((a, b) => (a.difficulty || 0) - (b.difficulty || 0));
           break;
         case "diff_desc":
-          data.sort((a, b) => b.difficulty - a.difficulty);
+          data.sort((a, b) => (b.difficulty || 0) - (a.difficulty || 0));
           break;
       }
     }
@@ -99,5 +98,5 @@ app.get("/api/techs/:id", async (req, res) => {
   }
 });
 
-// Export Express app for Vercel
+// Export for Vercel
 export default app;
