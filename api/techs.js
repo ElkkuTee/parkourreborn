@@ -3,12 +3,13 @@ import cors from "cors";
 import admin from "firebase-admin";
 
 
-let serviceAccount = null;
+// Parse service account JSON string
+let serviceAccount;
 try {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
-} catch (e) {
-  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT env variable:", e);
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n"); // fix line breaks
+} catch (err) {
+  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT:", err);
 }
 
 if (!admin.apps.length && serviceAccount) {
