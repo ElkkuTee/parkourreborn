@@ -7,18 +7,26 @@ function App() {
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
+  const [loading, setLoading] = useState(false);
 
   const fetchTechs = async () => {
-    // Build query params
-    let query = [];
-    if (search) query.push(`search=${encodeURIComponent(search)}`);
-    if (tags.size > 0) query.push(`tags=${[...tags].join(",")}`);
-    if (sort) query.push(`sort=${sort}`);
-    const queryString = query.length ? "?" + query.join("&") : "";
+    setLoading(true);
+    try {
+      // Build query params
+      let query = [];
+      if (search) query.push(`search=${encodeURIComponent(search)}`);
+      if (tags.size > 0) query.push(`tags=${[...tags].join(",")}`);
+      if (sort) query.push(`sort=${sort}`);
+      const queryString = query.length ? "?" + query.join("&") : "";
 
-    const res = await fetch(`/api/techs${queryString}`);
-    const data = await res.json();
-    setTechs(data.data);
+      const res = await fetch(`/api/techs${queryString}`);
+      const data = await res.json();
+      setTechs(data.data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
