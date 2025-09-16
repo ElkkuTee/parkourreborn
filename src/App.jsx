@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
-import { fetchTechs } from "./api";
 
-export default function App() {
+function App() {
+  const [techs, setTechs] = useState([]);
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
-  const [sort, setSort] = useState("");
-  const [techs, setTechs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [sort, setSort] = useState("az");
 
-  useEffect(()=>{
-    const load = async () => {
-      setLoading(true);
-      const data = await fetchTechs({
-        search,
-        sort,
-        tags: tags.size ? Array.from(tags).join(",") : undefined
-      });
-      setTechs(data);
-      setLoading(false);
-    };
-    const id = setTimeout(load, 250); // debounce
-    return ()=>clearTimeout(id);
+  const fetchTechs = async () => {
+    // Build query params
+    let query = [];
+    if (search) query.push(`search=${encodeURIComponent(search)}`);
+    if (tags.size > 0) query.push(`tags=${[...tags].join(",")}`);
+    if (sort) query.push(`sort=${sort}`);
+    const queryString = query.length ? "?" + query.join("&") : "";
+
+    const res = await fetch(`/api/techs${queryString}`);
+    const data = await res.json();
+    setTechs(data.data);
+  };
+
+  useEffect(() => {
+    fetchTechs();
   }, [search, tags, sort]);
 
   return (
@@ -33,3 +33,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;
