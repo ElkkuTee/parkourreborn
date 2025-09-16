@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Theme: Blue */
+  --pr-neon: #4aa3ff;
+}
+
+:root[data-theme='red'] {
+  --pr-neon: #ff4a4a;
+}
+
+:root[data-theme='green'] {
+  --pr-neon: #4aff4a;
+}

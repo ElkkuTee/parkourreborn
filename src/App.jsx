@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
+import ThemeSwitch from "./components/ThemeSwitch";
 
 function App() {
   const [techs, setTechs] = useState([]);
@@ -8,6 +9,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
+  const [currentTheme, setCurrentTheme] = useState("blue");
 
   const fetchTechs = async () => {
     setLoading(true);
@@ -36,21 +38,33 @@ function App() {
     fetchTechs();
   }, [search, tags, sort]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", currentTheme);
+  }, [currentTheme]);
+
+  const handleThemeChange = (theme) => {
+    setCurrentTheme(theme);
+  };
+
   return (
-    <div className="min-h-screen bg-pr-dark text-white p-6">
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <ThemeSwitch
+        currentTheme={currentTheme}
+        onThemeChange={handleThemeChange}
+      />
       <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
         Parkour Reborn Techs
       </h1>
-      
-      <FiltersBar 
-        search={search} 
-        setSearch={setSearch} 
-        tags={tags} 
-        setTags={setTags} 
-        sort={sort} 
-        setSort={setSort} 
+
+      <FiltersBar
+        search={search}
+        setSearch={setSearch}
+        tags={tags}
+        setTags={setTags}
+        sort={sort}
+        setSort={setSort}
       />
-      
+
       {loading ? (
         <div className="text-center py-8">
           <p className="text-lg">Loading...</p>
