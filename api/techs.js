@@ -2,11 +2,16 @@ import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
 
-// Load service account credentials from env variable
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
-// Initialize Firebase Admin (only once per runtime)
-if (!admin.apps.length) {
+let serviceAccount = null;
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+} catch (e) {
+  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT env variable:", e);
+}
+
+if (!admin.apps.length && serviceAccount) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
