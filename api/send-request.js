@@ -7,30 +7,20 @@ export default async function handler(req, res) {
 
   try {
     const { techId, message } = req.body;
-    const token = req.headers.authorization?.split('Bearer ')[1];
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
     
-    if (!token) {
+    if (!idToken) {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
-    console.log('Received request:', { techId, message }); // Debug log
-
-    // Verify the Firebase token
-    let decodedToken;
-    try {
-      decodedToken = await admin.auth().verifyIdToken(token);
-    } catch (tokenError) {
-      console.error('Token verification failed:', tokenError);
-      return res.status(401).json({ error: 'Invalid authentication token' });
-    }
-
-    console.log('Token decoded:', decodedToken); // Debug log
-
-    // Extract Discord information from custom claims
-    const { discord_id, username } = decodedToken;
+    // Verify the ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
     
+    // Get the user's custom claims which contain Discord info
+    const user = await admin.auth().getUser(decodedToken.uid);
+    const { discord_id, username } = user.customClaims || {};
+
     if (!discord_id || !username) {
-      console.error('Missing Discord info in token:', decodedToken);
       return res.status(400).json({ error: 'Missing Discord information' });
     }
 
@@ -41,9 +31,7 @@ export default async function handler(req, res) {
       message: message || ''
     };
 
-    console.log('Sending to Discord bot:', requestBody); // Debug log
-
-    // Send to the Discord bot endpoint
+    // Send to Discord bot
     const response = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
@@ -55,12 +43,8 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Discord bot response error:', errorText);
       throw new Error(`Failed to send to Discord bot: ${errorText}`);
     }
-
-    const responseData = await response.json();
-    console.log('Discord bot response:', responseData); // Debug log
 
     res.status(200).json({ success: true });
   } catch (error) {

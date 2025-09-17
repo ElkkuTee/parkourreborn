@@ -1,33 +1,74 @@
 import { useEffect, useState } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithCustomToken } from 'firebase/auth';
+
+// Initialize Firebase client
+const firebaseConfig = {
+  apiKey: "AIzaSyD6zho7jW6s41tbXwQZfBgfGnM1OptC_oE",
+  authDomain: "parkour-reborn-958ae.firebaseapp.com",
+  projectId: "parkour-reborn-958ae",
+  storageBucket: "parkour-reborn-958ae.firebasestorage.app",
+  messagingSenderId: "625252002377",
+  appId: "1:625252002377:web:2524593af493a728a42d98",
+  measurementId: "G-3KTM5H2R0V"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 export default function DiscordLogin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check URL parameters for token
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const customToken = params.get('token');
     
-    if (token) {
-      localStorage.setItem('auth_token', token);
-      window.history.replaceState({}, document.title, '/');
-      setIsLoggedIn(true);
+    if (customToken) {
+      handleCustomToken(customToken);
     } else {
-      // Check if there's an existing token
-      const existingToken = localStorage.getItem('auth_token');
-      setIsLoggedIn(!!existingToken);
+      // Check if user is already signed in
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        setIsLoggedIn(!!user);
+        setLoading(false);
+      });
+      return () => unsubscribe();
     }
-    setLoading(false);
   }, []);
+
+  const handleCustomToken = async (customToken) => {
+    try {
+      // Sign in with custom token to get ID token
+      const userCredential = await signInWithCustomToken(auth, customToken);
+      const idToken = await userCredential.user.getIdToken();
+      
+      // Store the ID token
+      localStorage.setItem('auth_token', idToken);
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/');
+      
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = () => {
     window.location.href = '/api/auth/discord';
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      localStorage.removeItem('auth_token');
+      setIsLoggedIn(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (loading) return null;
