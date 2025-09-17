@@ -13,25 +13,30 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
-    // Verify the ID token
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    
-    // Get the user's custom claims which contain Discord info
-    const user = await admin.auth().getUser(decodedToken.uid);
-    const { discord_id, username } = user.customClaims || {};
+    if (!techId) {
+      return res.status(400).json({ error: 'Tech ID is required' });
+    }
 
-    if (!discord_id || !username) {
-      return res.status(400).json({ error: 'Missing Discord information' });
+    // Verify the ID token and get user data
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const user = await admin.auth().getUser(decodedToken.uid);
+    const customClaims = user.customClaims || {};
+
+    // Check if user has Discord info in claims
+    if (!customClaims.discord_id || !customClaims.username) {
+      console.error('Missing Discord info:', { uid: user.uid, claims: customClaims });
+      return res.status(400).json({ error: 'Discord account not linked properly' });
     }
 
     const requestBody = {
-      discord_username: username,
-      discord_id: discord_id,
+      discord_username: customClaims.username,
+      discord_id: customClaims.discord_id,
       tech: techId,
       message: message || ''
     };
 
-    // Send to Discord bot
+    console.log('Sending request to Discord bot:', requestBody);
+
     const response = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
@@ -43,15 +48,16 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to send to Discord bot: ${errorText}`);
+      console.error('Discord bot error:', errorText);
+      throw new Error('Failed to send to Discord bot');
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Request error:', error);
-    res.status(500).json({ 
+    res.status(error.status || 500).json({ 
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

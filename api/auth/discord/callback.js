@@ -30,10 +30,13 @@ export default async function handler(req, res) {
     });
     const userData = await userResponse.json();
 
-    const sessionToken = await admin.auth().createCustomToken(userData.id, {
+    // Set custom claims before creating the token
+    await admin.auth().setCustomUserClaims(userData.id, {
       discord_id: userData.id,
-      username: userData.username,
+      username: `${userData.username}#${userData.discriminator}`
     });
+
+    const sessionToken = await admin.auth().createCustomToken(userData.id);
 
     res.redirect(`/?token=${sessionToken}`);
   } catch (error) {
