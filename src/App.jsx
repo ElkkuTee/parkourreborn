@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
+import TechModal from "./components/TechModal";
 
 function App() {
   const [techs, setTechs] = useState([]);
@@ -12,6 +13,8 @@ function App() {
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem("theme") || "blue";
   });
+  const [selectedTech, setSelectedTech] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchTechs = async () => {
     setLoading(true);
@@ -49,6 +52,16 @@ function App() {
     setCurrentTheme(theme);
   };
 
+  const handleTechClick = (tech) => {
+    setSelectedTech(tech);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTech(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <ThemeSwitch
@@ -73,8 +86,14 @@ function App() {
           <p className="text-lg">Loading...</p>
         </div>
       ) : (
-        <TechList techs={techs} />
+        <TechList techs={techs} onTechClick={handleTechClick} />
       )}
+
+      <TechModal
+        tech={selectedTech}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
