@@ -1,4 +1,5 @@
 import admin from './_utils/firebase.js';
+import fetch from 'node-fetch'; // Add this if not already imported
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,18 +14,23 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
-    if (!techId) {
-      return res.status(400).json({ error: 'Tech ID is required' });
-    }
+    // Log request data
+    console.log('Received request:', { techId, hasMessage: !!message });
 
-    // Verify the ID token and get user data
+    // Verify token and get user
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const user = await admin.auth().getUser(decodedToken.uid);
     const customClaims = user.customClaims || {};
 
-    // Check if user has Discord info in claims
+    // Log user data
+    console.log('User data:', { 
+      uid: user.uid, 
+      claims: customClaims,
+      hasDiscordId: !!customClaims.discord_id,
+      hasUsername: !!customClaims.username
+    });
+
     if (!customClaims.discord_id || !customClaims.username) {
-      console.error('Missing Discord info:', { uid: user.uid, claims: customClaims });
       return res.status(400).json({ error: 'Discord account not linked properly' });
     }
 
@@ -35,9 +41,10 @@ export default async function handler(req, res) {
       message: message || ''
     };
 
-    console.log('Sending request to Discord bot:', requestBody);
+    console.log('Sending to Discord bot:', requestBody);
 
-    const response = await fetch('https://fofr.onrender.com/receive-request', {
+    // Send to Discord bot
+    const botResponse = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,18 +53,27 @@ export default async function handler(req, res) {
       body: JSON.stringify(requestBody)
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Discord bot error:', errorText);
-      throw new Error('Failed to send to Discord bot');
+    // Log bot response status
+    console.log('Bot response status:', botResponse.status);
+
+    if (!botResponse.ok) {
+      const errorText = await botResponse.text();
+      console.error('Discord bot error response:', errorText);
+      return res.status(502).json({ 
+        error: 'Failed to send to Discord bot',
+        details: errorText
+      });
     }
+
+    const responseData = await botResponse.json();
+    console.log('Bot response data:', responseData);
 
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Request error:', error);
-    res.status(error.status || 500).json({ 
+    res.status(500).json({ 
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

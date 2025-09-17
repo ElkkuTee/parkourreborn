@@ -30,7 +30,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          techId: tech.name, // Using tech name as ID
+          techId: tech.name,
           message
         })
       });
@@ -38,13 +38,14 @@ const TechModal = ({ tech, isOpen, onClose }) => {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send help request');
+        throw new Error(data.error || data.details || 'Failed to send help request');
       }
 
       alert('Help request sent successfully!');
     } catch (error) {
       console.error('Help request error:', error);
-      alert(`Failed to send help request: ${error.message}`);
+      const errorMessage = error.message || 'Unknown error occurred';
+      alert(`Failed to send help request: ${errorMessage}`);
     } finally {
       setRequesting(false);
     }
