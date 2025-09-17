@@ -1,5 +1,4 @@
 import admin from './_utils/firebase.js';
-import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,27 +9,25 @@ export default async function handler(req, res) {
     const { techId, message } = req.body;
     const idToken = req.headers.authorization?.split('Bearer ')[1];
     
-    // Validate request
     if (!idToken) {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
+
     if (!techId) {
-      return res.status(400).json({ error: 'Tech name is required' });
+      return res.status(400).json({ error: 'Tech ID is required' });
     }
 
-    // Verify Firebase token and get user
+    // Verify the ID token and get user data
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const user = await admin.auth().getUser(decodedToken.uid);
     const customClaims = user.customClaims || {};
 
-    // Check for required Discord info
-    if (!customClaims.discord_id || !customClaims.username || !customClaims.discriminator) {
-      return res.status(400).json({ 
-        error: 'Discord account not properly linked. Please logout and login again.' 
-      });
+    // Check if user has Discord info in claims
+    if (!customClaims.discord_id || !customClaims.username) {
+      console.error('Missing Discord info:', { uid: user.uid, claims: customClaims });
+      return res.status(400).json({ error: 'Discord account not linked properly' });
     }
 
-    // Format request body exactly as bot expects
     const requestBody = {
       discord_username: customClaims.username,
       discord_id: customClaims.discord_id,
@@ -38,48 +35,29 @@ export default async function handler(req, res) {
       message: message || ''
     };
 
-    console.log('[Help Request] Sending to bot:', requestBody);
+    console.log('Sending request to Discord bot:', requestBody);
 
-    // Send request to Discord bot with correct headers
-    const botResponse = await fetch('https://fofr.onrender.com/receive-request', {
+    const response = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.DISCORD_BOT_API_KEY // Changed to match bot's expected header
+        'Authorization': `Bearer ${process.env.DISCORD_BOT_API_KEY}`
       },
       body: JSON.stringify(requestBody)
     });
 
-    if (!botResponse.ok) {
-      const errorText = await botResponse.text();
-      console.error('[Help Request] Bot error:', errorText);
-      
-      // Map specific bot error responses
-      if (botResponse.status === 401) {
-        return res.status(500).json({ error: 'Bot authentication failed' });
-      } else if (botResponse.status === 400) {
-        return res.status(400).json({ error: 'Invalid request format' });
-      }
-      
-      return res.status(502).json({
-        error: 'Failed to send to Discord bot',
-        details: errorText
-      });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Discord bot error:', errorText);
+      throw new Error('Failed to send to Discord bot');
     }
 
-    const responseData = await botResponse.json();
-    console.log('[Help Request] Success:', responseData);
-
-    res.status(200).json({ 
-      success: true,
-      message: 'Help request sent successfully! A helper will contact you on Discord.'
-    });
-
+    res.status(200).json({ success: true });
   } catch (error) {
-    console.error('[Help Request] Error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error.message
+    console.error('Request error:', error);
+    res.status(error.status || 500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
