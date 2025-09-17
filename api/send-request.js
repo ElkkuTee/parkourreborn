@@ -22,14 +22,19 @@ export default async function handler(req, res) {
     const user = await admin.auth().getUser(decodedToken.uid);
     const customClaims = user.customClaims || {};
 
-    // Check if user has Discord info in claims
-    if (!customClaims.discord_id || !customClaims.username) {
-      console.error('Missing Discord info:', { uid: user.uid, claims: customClaims });
-      return res.status(400).json({ error: 'Discord account not linked properly' });
+    // Check if user has complete Discord info in claims
+    if (!customClaims.discord_id || !customClaims.username || !customClaims.discriminator) {
+      console.error('Missing Discord info:', { 
+        uid: user.uid, 
+        claims: customClaims 
+      });
+      return res.status(400).json({ 
+        error: 'Missing Discord information. Please logout and login again.' 
+      });
     }
 
     const requestBody = {
-      discord_username: customClaims.username,
+      discord_username: `${customClaims.username}#${customClaims.discriminator}`,
       discord_id: customClaims.discord_id,
       tech: techId,
       message: message || ''

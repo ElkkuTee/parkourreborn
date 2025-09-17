@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Exchange code for Discord token
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -22,23 +23,38 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenResponse.json();
     if (!tokenData.access_token) {
-      throw new Error('Failed to get access token');
+      throw new Error('Failed to get Discord access token');
     }
 
+    // Get Discord user data
     const userResponse = await fetch('https://discord.com/api/users/@me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const userData = await userResponse.json();
+    
+    if (!userData.id) {
+      throw new Error('Failed to get Discord user data');
+    }
 
-    // Set custom claims before creating the token
-    await admin.auth().setCustomUserClaims(userData.id, {
-      discord_id: userData.id,
-      username: `${userData.username}#${userData.discriminator}`
+    console.log('Discord user data:', {
+      id: userData.id,
+      username: userData.username,
+      discriminator: userData.discriminator
     });
 
-    const sessionToken = await admin.auth().createCustomToken(userData.id);
+    // Set custom claims before creating token
+    await admin.auth().setCustomUserClaims(userData.id, {
+      discord_id: userData.id,
+      username: userData.username,
+      discriminator: userData.discriminator || '0'
+    });
 
-    res.redirect(`/?token=${sessionToken}`);
+    // Create custom token after setting claims
+    const customToken = await admin.auth().createCustomToken(userData.id);
+
+    // Redirect with token
+    res.redirect(`/?token=${customToken}`);
+    
   } catch (error) {
     console.error('Auth error:', error);
     res.redirect('/?error=auth_failed');
