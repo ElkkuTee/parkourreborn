@@ -7,6 +7,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -14,12 +15,15 @@ const TechModal = ({ tech, isOpen, onClose }) => {
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={onClose}
           />
+          
+          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50
-                     bg-pr-dark p-6 rounded-lg shadow-lg w-11/12 max-w-2xl"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50
+                     bg-pr-dark p-6 rounded-lg shadow-lg w-11/12 max-w-2xl
+                     max-h-[90vh] overflow-y-auto"
           >
             {/* Close button */}
             <button
