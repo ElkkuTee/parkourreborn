@@ -117,7 +117,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                   {tech.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-1 text-sm bg-pr-dark-lighter rounded text-pr-neon"
+                      className="px-2 py-1 text-xs bg-gray-800 text-pr-neon rounded-full shadow-sm"
                     >
                       {tag.charAt(0).toUpperCase() + tag.slice(1)}
                     </span>

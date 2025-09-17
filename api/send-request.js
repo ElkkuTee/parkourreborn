@@ -1,4 +1,4 @@
-import admin from './_utils/firebase-admin';
+import admin from './_utils/firebase.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,16 +13,23 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
+    // Verify the Firebase token
     const decodedToken = await admin.auth().verifyIdToken(token);
     const { discord_id, username } = decodedToken;
 
-    const response = await fetch('YOUR_DISCORD_BOT_ENDPOINT', {
+    // Send to the Discord bot endpoint
+    const response = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.DISCORD_BOT_API_KEY,
+        'Authorization': `Bearer ${process.env.DISCORD_BOT_API_KEY}`
       },
-      body: JSON.stringify({ discord_id, username, tech_id: techId, message }),
+      body: JSON.stringify({
+        discord_username: username,
+        discord_id: discord_id,
+        tech: techId,
+        message: message || ''
+      })
     });
 
     if (!response.ok) {
