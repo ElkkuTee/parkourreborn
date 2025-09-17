@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         'pr-neon': 'rgb(var(--pr-neon) / <alpha-value>)',
+        'pr-dark-lighter': '#1a1a1a',
         'pr-dark': '#111827',
       },
     },
