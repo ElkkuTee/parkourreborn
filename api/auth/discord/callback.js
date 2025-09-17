@@ -1,9 +1,12 @@
-import initializeFirebase from '../../utils/firebase-admin';
+import admin from '../../utils/firebase-admin';
 
 export default async function handler(req, res) {
-  const admin = initializeFirebase();
   const { code } = req.query;
   
+  if (!code) {
+    return res.redirect('/?error=no_code');
+  }
+
   try {
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
@@ -17,11 +20,19 @@ export default async function handler(req, res) {
       }),
     });
 
-    const { access_token } = await tokenResponse.json();
+    const tokenData = await tokenResponse.json();
+    if (!tokenData.access_token) {
+      throw new Error('Failed to get access token');
+    }
+
     const userResponse = await fetch('https://discord.com/api/users/@me', {
-      headers: { Authorization: `Bearer ${access_token}` },
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const userData = await userResponse.json();
+
+    if (!userData.id) {
+      throw new Error('Failed to get user data');
+    }
 
     const sessionToken = await admin.auth().createCustomToken(userData.id, {
       discord_id: userData.id,

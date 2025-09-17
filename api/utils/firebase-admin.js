@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 
-function initializeFirebase() {
-  if (!admin.apps.length) {
+if (!admin.apps.length) {
+  try {
     const firebaseConfig = JSON.parse(
       Buffer.from(process.env.FIREBASE_KEY_BASE64, 'base64').toString()
     );
@@ -9,9 +9,9 @@ function initializeFirebase() {
     admin.initializeApp({
       credential: admin.credential.cert(firebaseConfig)
     });
+  } catch (error) {
+    console.error('Firebase admin initialization error:', error);
   }
-
-  return admin;
 }
 
-export default initializeFirebase;
+export default admin;
