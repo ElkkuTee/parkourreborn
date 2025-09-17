@@ -42,14 +42,34 @@ export default async function handler(req, res) {
       discriminator: userData.discriminator
     });
 
-    // Set custom claims before creating token
+    try {
+      // Try to get existing user
+      await admin.auth().getUser(userData.id);
+    } catch (userError) {
+      if (userError.code === 'auth/user-not-found') {
+        // Create new user if not found
+        await admin.auth().createUser({
+          uid: userData.id,
+          displayName: userData.username,
+          photoURL: userData.avatar 
+            ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+            : null
+        });
+        console.log('Created new user:', userData.id);
+      } else {
+        throw userError;
+      }
+    }
+
+    // Set custom claims for the user
     await admin.auth().setCustomUserClaims(userData.id, {
       discord_id: userData.id,
       username: userData.username,
       discriminator: userData.discriminator || '0'
     });
+    console.log('Set custom claims for:', userData.id);
 
-    // Create custom token after setting claims
+    // Create custom token
     const customToken = await admin.auth().createCustomToken(userData.id);
 
     // Redirect with token
@@ -57,6 +77,6 @@ export default async function handler(req, res) {
     
   } catch (error) {
     console.error('Auth error:', error);
-    res.redirect('/?error=auth_failed');
+    res.redirect('/?error=' + encodeURIComponent(error.message));
   }
 }
