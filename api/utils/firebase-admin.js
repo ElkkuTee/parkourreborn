@@ -10,7 +10,7 @@ if (!admin.apps.length) {
       credential: admin.credential.cert(firebaseConfig)
     });
   } catch (error) {
-    console.error('Firebase admin initialization error:', error);
+    console.error('Firebase initialization error:', error);
   }
 }
 

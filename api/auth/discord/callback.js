@@ -1,4 +1,4 @@
-import admin from '../../utils/firebase-admin';
+import admin from '../../../utils/firebase-admin.js';
 
 export default async function handler(req, res) {
   const { code } = req.query;
@@ -29,10 +29,6 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const userData = await userResponse.json();
-
-    if (!userData.id) {
-      throw new Error('Failed to get user data');
-    }
 
     const sessionToken = await admin.auth().createCustomToken(userData.id, {
       discord_id: userData.id,

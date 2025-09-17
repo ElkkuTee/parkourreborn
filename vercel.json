@@ -16,7 +16,7 @@
   "routes": [
     {
       "src": "/api/auth/discord",
-      "dest": "api/auth/discord.js"
+      "dest": "api/auth/discord/index.js"
     },
     {
       "src": "/api/auth/discord/callback",
