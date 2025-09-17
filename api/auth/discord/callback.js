@@ -50,10 +50,7 @@ export default async function handler(req, res) {
         // Create new user if not found
         await admin.auth().createUser({
           uid: userData.id,
-          displayName: userData.username,
-          photoURL: userData.avatar 
-            ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
-            : null
+          displayName: userData.username
         });
         console.log('Created new user:', userData.id);
       } else {
