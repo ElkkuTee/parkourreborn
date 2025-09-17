@@ -6,7 +6,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
 
   if (!tech) return null;
 
-  const handleHelpRequest = async (tech) => {
+  const handleHelpRequest = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
       alert('Please login first');
@@ -14,10 +14,14 @@ const TechModal = ({ tech, isOpen, onClose }) => {
     }
 
     try {
+      setRequesting(true);
       const message = prompt('Add an optional message for your help request:');
-      if (message === null) return; // User cancelled the prompt
+      if (message === null) {
+        setRequesting(false);
+        return; // User cancelled the prompt
+      }
       
-      console.log('Sending help request:', { tech, message });
+      console.log('Sending help request:', { tech: tech.name, message });
 
       const response = await fetch('/api/send-request', {
         method: 'POST',
@@ -26,7 +30,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          techId: tech.name, // Using tech name instead of ID
+          techId: tech.name, // Using tech name as ID
           message
         })
       });
@@ -41,6 +45,8 @@ const TechModal = ({ tech, isOpen, onClose }) => {
     } catch (error) {
       console.error('Help request error:', error);
       alert(`Failed to send help request: ${error.message}`);
+    } finally {
+      setRequesting(false);
     }
   };
 
