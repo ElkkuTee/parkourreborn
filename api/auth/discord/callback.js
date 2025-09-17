@@ -1,4 +1,4 @@
-import admin from '../../../utils/firebase-admin.js';
+import admin from '../../_utils/firebase.js';
 
 export default async function handler(req, res) {
   const { code } = req.query;

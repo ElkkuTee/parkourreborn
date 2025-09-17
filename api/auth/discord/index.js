@@ -1,5 +1,3 @@
-import admin from 'firebase-admin';
-
 export default async function handler(req, res) {
   const DISCORD_ENDPOINT = 'https://discord.com/api/oauth2/authorize';
   const params = new URLSearchParams({
