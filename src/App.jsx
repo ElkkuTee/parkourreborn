@@ -64,40 +64,43 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <ThemeSwitch
-        currentTheme={currentTheme}
-        onThemeChange={handleThemeChange}
-      />
-      <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
-        Parkour Reborn Techs
-      </h1>
-
-      <FiltersBar
-        search={search}
-        setSearch={setSearch}
-        tags={tags}
-        setTags={setTags}
-        sort={sort}
-        setSort={setSort}
-      />
-
-      {loading ? (
-        <div className="text-center py-8">
-          <p className="text-lg">Loading...</p>
+    <div className="min-h-screen bg-white dark:bg-pr-dark">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            Parkour Reborn Techs
+          </h1>
+          <div className="flex items-center gap-4">
+            <DiscordLogin />
+            <ThemeSwitch
+              currentTheme={currentTheme}
+              onThemeChange={handleThemeChange}
+            />
+          </div>
         </div>
-      ) : (
-        <TechList techs={techs} onTechClick={handleTechClick} />
-      )}
 
-      <TechModal
-        tech={selectedTech}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+        <FiltersBar
+          search={search}
+          setSearch={setSearch}
+          tags={tags}
+          setTags={setTags}
+          sort={sort}
+          setSort={setSort}
+        />
 
-      <div className="fixed top-4 right-4 z-50">
-        <DiscordLogin />
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-lg">Loading...</p>
+          </div>
+        ) : (
+          <TechList techs={techs} onTechClick={handleTechClick} />
+        )}
+
+        <TechModal
+          tech={selectedTech}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </div>
     </div>
   );
