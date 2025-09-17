@@ -3,6 +3,7 @@ import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
 import TechModal from "./components/TechModal";
+import DiscordLogin from "./components/DiscordLogin";
 
 function App() {
   const [techs, setTechs] = useState([]);
@@ -94,6 +95,10 @@ function App() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
+
+      <div className="fixed top-4 right-4 z-50">
+        <DiscordLogin />
+      </div>
     </div>
   );
 }

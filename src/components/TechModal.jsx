@@ -1,7 +1,43 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 
 const TechModal = ({ tech, isOpen, onClose }) => {
+  const [requesting, setRequesting] = useState(false);
+
   if (!tech) return null;
+
+  const handleHelpRequest = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Please login first');
+      return;
+    }
+
+    setRequesting(true);
+    const message = prompt('Add an optional message for your help request:');
+
+    try {
+      const response = await fetch('/api/send-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          techId: tech.id,
+          message,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to send request');
+
+      alert('Help request sent successfully!');
+    } catch (error) {
+      alert('Failed to send help request. Please try again.');
+    } finally {
+      setRequesting(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -17,7 +53,7 @@ const TechModal = ({ tech, isOpen, onClose }) => {
           />
 
           {/* Flex Container for Centering */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -36,13 +72,25 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-pr-neon transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-pr-neon mb-4">{tech.name}</h2>
+              <h2 className="text-2xl font-bold text-pr-neon mb-4">
+                {tech.name}
+              </h2>
 
               {/* Video */}
               <div className="aspect-w-16 aspect-h-9 mb-4">
@@ -75,8 +123,19 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                     </span>
                   ))}
                 </div>
-                <span className="text-pr-neon ml-4">Difficulty {tech.difficulty}</span>
+                <span className="text-pr-neon ml-4">
+                  Difficulty {tech.difficulty}
+                </span>
               </div>
+
+              {/* Request Help Button */}
+              <button
+                onClick={handleHelpRequest}
+                disabled={requesting}
+                className="mt-4 px-4 py-2 bg-pr-neon text-white rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {requesting ? 'Sending...' : 'Request Help'}
+              </button>
             </motion.div>
           </motion.div>
         </>
