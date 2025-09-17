@@ -1,6 +1,7 @@
-import admin from 'firebase-admin';
+import initializeFirebase from '../../utils/firebase-admin';
 
 export default async function handler(req, res) {
+  const admin = initializeFirebase();
   const { code } = req.query;
   
   try {
@@ -29,6 +30,7 @@ export default async function handler(req, res) {
 
     res.redirect(`/?token=${sessionToken}`);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Auth error:', error);
+    res.redirect('/?error=auth_failed');
   }
 }
