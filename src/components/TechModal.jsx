@@ -71,11 +71,11 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                       key={tag}
                       className="px-2 py-1 text-sm bg-pr-dark-lighter rounded text-pr-neon"
                     >
-                      {tag}
+                      {tag.charAt(0).toUpperCase() + tag.slice(1)}
                     </span>
                   ))}
                 </div>
-                <span className="text-pr-neon ml-4">{tech.difficulty}</span>
+                <span className="text-pr-neon ml-4">Difficulty {tech.difficulty}</span>
               </div>
             </motion.div>
           </motion.div>
