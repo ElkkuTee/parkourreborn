@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
     // Format request body exactly as bot expects
     const requestBody = {
-      discord_username: `${customClaims.username}#${customClaims.discriminator}`,
+      discord_username: customClaims.username,
       discord_id: customClaims.discord_id,
       tech: techId,
       message: message || ''
