@@ -1,9 +1,12 @@
 import React from "react";
 
 const TechCard = ({ tech, onTechClick }) => {
+  // Verify onTechClick is received as prop and tech object exists
+  if (!onTechClick || !tech) return null;
+
   return (
     <div
-      onClick={() => onTechClick(tech)}
+      onClick={() => onTechClick(tech)} // Use arrow function to properly bind
       className="cursor-pointer bg-pr-dark p-4 rounded-lg hover:shadow-pr-neon transition-shadow duration-300"
     >
       <div className="bg-gray-900 border-2 border-pr-neon rounded-2xl p-5 shadow-md

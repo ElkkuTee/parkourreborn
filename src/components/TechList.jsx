@@ -1,7 +1,7 @@
 import React from "react";
 import TechCard from "./TechCard";
 
-export default function TechList({ techs }) {
+const TechList = ({ techs, onTechClick }) => {
   if (techs.length === 0) {
     return (
       <div className="text-center py-8">
@@ -11,10 +11,16 @@ export default function TechList({ techs }) {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {techs.map(tech => (
-        <TechCard key={tech.id} tech={tech} />
+        <TechCard 
+          key={tech.id}
+          tech={tech}
+          onTechClick={onTechClick} 
+        />
       ))}
     </div>
   );
-}
+};
+
+export default TechList;
