@@ -1,19 +1,27 @@
 import { useEffect, useState } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 
 // Initialize Firebase client
 const firebaseConfig = {
   apiKey: "AIzaSyD6zho7jW6s41tbXwQZfBgfGnM1OptC_oE",
   authDomain: "parkour-reborn-958ae.firebaseapp.com",
   projectId: "parkour-reborn-958ae",
-  storageBucket: "parkour-reborn-958ae.firebasestorage.app",
+  storageBucket: "parkour-reborn-958ae.appspot.com", // Fixed storage bucket URL
   messagingSenderId: "625252002377",
-  appId: "1:625252002377:web:2524593af493a728a42d98",
-  measurementId: "G-3KTM5H2R0V"
+  appId: "1:625252002377:web:2524593af493a728a42d98"
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only once
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  if (!/already exists/.test(error.message)) {
+    console.error('Firebase initialization error:', error);
+  }
+}
+
 const auth = getAuth(app);
 
 export default function DiscordLogin() {
@@ -26,32 +34,42 @@ export default function DiscordLogin() {
     
     if (customToken) {
       handleCustomToken(customToken);
-    } else {
-      // Check if user is already signed in
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        setIsLoggedIn(!!user);
-        setLoading(false);
-      });
-      return () => unsubscribe();
     }
+
+    // Set up auth state listener
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleCustomToken = async (customToken) => {
     try {
-      // Sign in with custom token to get ID token
-      const userCredential = await signInWithCustomToken(auth, customToken);
-      const idToken = await userCredential.user.getIdToken();
+      setLoading(true);
+      console.log('Signing in with custom token...');
       
-      // Store the ID token
+      const userCredential = await signInWithCustomToken(auth, customToken);
+      console.log('Sign in successful');
+      
+      const idToken = await userCredential.user.getIdToken();
       localStorage.setItem('auth_token', idToken);
       
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/');
+      // Set up token refresh
+      setInterval(async () => {
+        const user = auth.currentUser;
+        if (user) {
+          const newToken = await user.getIdToken(true);
+          localStorage.setItem('auth_token', newToken);
+        }
+      }, 3600000); // Refresh token every hour
       
+      window.history.replaceState({}, document.title, '/');
       setIsLoggedIn(true);
     } catch (error) {
       console.error('Auth error:', error);
-      alert('Authentication failed. Please try again.');
+      alert(`Authentication failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -68,10 +86,17 @@ export default function DiscordLogin() {
       setIsLoggedIn(false);
     } catch (error) {
       console.error('Logout error:', error);
+      alert(`Logout failed: ${error.message}`);
     }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <button disabled className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-md">
+        Loading...
+      </button>
+    );
+  }
 
   return (
     <button
