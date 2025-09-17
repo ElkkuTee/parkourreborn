@@ -18,29 +18,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Tech name is required' });
     }
 
-    // Log the incoming request
-    console.log('[Help Request] Received:', { techId, hasMessage: !!message });
-
-    // Verify Firebase token
+    // Verify Firebase token and get user
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const user = await admin.auth().getUser(decodedToken.uid);
     const customClaims = user.customClaims || {};
 
-    console.log('[Help Request] User data:', {
-      uid: user.uid,
-      hasDiscordId: !!customClaims.discord_id,
-      hasUsername: !!customClaims.username
-    });
-
-    if (!customClaims.discord_id || !customClaims.username) {
+    // Check for required Discord info
+    if (!customClaims.discord_id || !customClaims.username || !customClaims.discriminator) {
       return res.status(400).json({ 
-        error: 'Discord account not linked. Please logout and login again.' 
+        error: 'Discord account not properly linked. Please logout and login again.' 
       });
     }
 
-    // Prepare request to Discord bot
+    // Format request body exactly as bot expects
     const requestBody = {
-      discord_username: customClaims.username,
+      discord_username: `${customClaims.username}#${customClaims.discriminator}`,
       discord_id: customClaims.discord_id,
       tech: techId,
       message: message || ''
@@ -48,48 +40,46 @@ export default async function handler(req, res) {
 
     console.log('[Help Request] Sending to bot:', requestBody);
 
-    // Send request to Discord bot
+    // Send request to Discord bot with correct headers
     const botResponse = await fetch('https://fofr.onrender.com/receive-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DISCORD_BOT_API_KEY}`,
-        'Accept': 'application/json'
+        'X-API-Key': process.env.DISCORD_BOT_API_KEY // Changed to match bot's expected header
       },
-      body: JSON.stringify(requestBody),
-      // Add timeout to prevent hanging requests
-      timeout: 8000
+      body: JSON.stringify(requestBody)
     });
 
-    console.log('[Help Request] Bot response status:', botResponse.status);
-
-    // Handle bot response
     if (!botResponse.ok) {
-      const errorText = await botResponse.text().catch(() => 'No error details available');
+      const errorText = await botResponse.text();
       console.error('[Help Request] Bot error:', errorText);
+      
+      // Map specific bot error responses
+      if (botResponse.status === 401) {
+        return res.status(500).json({ error: 'Bot authentication failed' });
+      } else if (botResponse.status === 400) {
+        return res.status(400).json({ error: 'Invalid request format' });
+      }
       
       return res.status(502).json({
         error: 'Failed to send to Discord bot',
-        details: errorText,
-        status: botResponse.status
+        details: errorText
       });
     }
 
-    // Parse successful response
     const responseData = await botResponse.json();
-    console.log('[Help Request] Bot success:', responseData);
+    console.log('[Help Request] Success:', responseData);
 
     res.status(200).json({ 
       success: true,
-      message: 'Help request sent successfully'
+      message: 'Help request sent successfully! A helper will contact you on Discord.'
     });
 
   } catch (error) {
     console.error('[Help Request] Error:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: error.message
     });
   }
 }
