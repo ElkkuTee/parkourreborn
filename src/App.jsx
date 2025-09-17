@@ -67,7 +67,7 @@ function App() {
     <div className="min-h-screen bg-white dark:bg-pr-dark">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
             Parkour Reborn Techs
           </h1>
           <div className="flex items-center gap-4">
