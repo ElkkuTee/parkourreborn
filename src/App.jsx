@@ -5,71 +5,62 @@ import ThemeSwitch from "./components/ThemeSwitch";
 import TechModal from "./components/TechModal";
 import DiscordLogin from "./components/DiscordLogin";
 import HamburgerMenu from "./components/HamburgerMenu";
-import SettingsModal from "./components/SettingsModal";
+import SettingsModal from "./components/SettingsModal.jsx";
 import AccountModal from "./components/AccountModal";
 
 function App() {
+  // Tech list state
   const [techs, setTechs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem("theme") || "blue";
-  });
   const [selectedTech, setSelectedTech] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Navigation and modal state
   const [currentPage, setCurrentPage] = useState("techs");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
 
-  const fetchTechs = async () => {
-    setLoading(true);
-    try {
-      let query = [];
-      if (search) query.push(`search=${encodeURIComponent(search)}`);
-      if (tags.size > 0) query.push(`tags=${[...tags].join(",")}`);
-      if (sort) query.push(`sort=${sort}`);
-      const queryString = query.length ? "?" + query.join("&") : "";
-
-      const res = await fetch(`/api/techs${queryString}`);
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const data = await res.json();
-      setTechs(data.data || []);
-    } catch (error) {
-      console.error("Error fetching techs:", error);
-      setTechs([]);
-    } finally {
-      setLoading(false);
+  // Theme state
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") || "light";
     }
-  };
+    return "light";
+  });
 
+  // Fetch techs data
   useEffect(() => {
+    const fetchTechs = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+        if (tags.size) params.append("tags", Array.from(tags).join(","));
+        if (sort) params.append("sort", sort);
+
+        const response = await fetch(`/api/techs?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch techs");
+
+        const data = await response.json();
+        setTechs(data || []); // Ensure we always have an array
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching techs:", err);
+        setError(err.message);
+        setTechs([]); // Reset to empty array on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTechs();
   }, [search, tags, sort]);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", currentTheme);
-    localStorage.setItem("theme", currentTheme);
-  }, [currentTheme]);
-
-  const handleThemeChange = (theme) => {
-    setCurrentTheme(theme);
-  };
-
-  const handleTechClick = (tech) => {
-    setSelectedTech(tech);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedTech(null);
-  };
-
-  // Watch for page changes to handle modals
+  // Handle page changes for modals
   useEffect(() => {
     if (currentPage === "settings") {
       setIsSettingsOpen(true);
@@ -88,37 +79,39 @@ function App() {
       />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
-            Parkour Reborn Techs
-          </h1>
-        </div>
-
-        <FiltersBar
-          search={search}
-          setSearch={setSearch}
-          tags={tags}
-          setTags={setTags}
-          sort={sort}
-          setSort={setSort}
-        />
-
-        {loading ? (
-          <div className="text-center py-8">
-            <p className="text-lg">Loading...</p>
-          </div>
-        ) : (
-          <TechList techs={techs} onTechClick={handleTechClick} />
-        )}
-
-        <TechModal
-          tech={selectedTech}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-        />
-
         {/* Main Content */}
-        {currentPage === "techs" && <TechList />}
+        {currentPage === "techs" && (
+          <>
+            <FiltersBar
+              search={search}
+              setSearch={setSearch}
+              tags={tags}
+              setTags={setTags}
+              sort={sort}
+              setSort={setSort}
+            />
+            {error ? (
+              <div className="text-center py-8 text-red-600 dark:text-red-400">
+                <p>{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 px-4 py-2 bg-pr-neon text-white rounded-md hover:opacity-90"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <TechList
+                techs={techs}
+                loading={loading}
+                onTechClick={(tech) => {
+                  setSelectedTech(tech);
+                  setIsModalOpen(true);
+                }}
+              />
+            )}
+          </>
+        )}
         {currentPage === "contributions" && (
           <div className="text-center py-20 text-gray-600 dark:text-gray-400">
             <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
@@ -134,9 +127,21 @@ function App() {
       </div>
 
       {/* Modals */}
+      {selectedTech && (
+        <TechModal
+          tech={selectedTech}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedTech(null);
+          }}
+        />
+      )}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        currentTheme={currentTheme}
+        setCurrentTheme={setCurrentTheme}
       />
       <AccountModal
         isOpen={isAccountOpen}
