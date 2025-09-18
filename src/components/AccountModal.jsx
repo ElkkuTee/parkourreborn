@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import DiscordLogin from './DiscordLogin';
 
 export default function AccountModal({ isOpen, onClose }) {
   return (
@@ -40,11 +39,13 @@ export default function AccountModal({ isOpen, onClose }) {
                 </svg>
               </button>
 
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Account</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Statistics</h2>
               
               <div className="space-y-6">
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <DiscordLogin />
+                  <p className="text-gray-600 dark:text-gray-400 text-center">
+                    Statistics and progress tracking coming soon!
+                  </p>
                 </div>
               </div>
             </motion.div>

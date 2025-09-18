@@ -9,7 +9,7 @@ export default function HamburgerMenu({ currentPage, setCurrentPage }) {
     { id: 'contributions', icon: '🤝', label: 'Contributions' },
     { id: 'about', icon: 'ℹ️', label: 'About' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
-    { id: 'account', icon: '👤', label: 'Account' }
+    { id: 'account', icon: '📊', label: 'Stats' }
   ];
 
   return (
