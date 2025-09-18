@@ -4,6 +4,10 @@ import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
 import TechModal from "./components/TechModal";
 import DiscordLogin from "./components/DiscordLogin";
+import { useState } from "react";
+import HamburgerMenu from "./components/HamburgerMenu";
+import SettingsModal from "./components/SettingsModal";
+import AccountModal from "./components/AccountModal";
 
 function App() {
   const [techs, setTechs] = useState([]);
@@ -16,6 +20,9 @@ function App() {
   });
   const [selectedTech, setSelectedTech] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState("techs");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   const fetchTechs = async () => {
     setLoading(true);
@@ -63,20 +70,29 @@ function App() {
     setSelectedTech(null);
   };
 
+  // Watch for page changes to handle modals
+  useEffect(() => {
+    if (currentPage === "settings") {
+      setIsSettingsOpen(true);
+      setCurrentPage("techs");
+    } else if (currentPage === "account") {
+      setIsAccountOpen(true);
+      setCurrentPage("techs");
+    }
+  }, [currentPage]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-pr-dark">
+      <HamburgerMenu
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-pr-neon to-blue-400 bg-clip-text text-transparent animate-pulse drop-shadow-lg mb-4">
             Parkour Reborn Techs
           </h1>
-          <div className="flex items-center gap-4">
-            <DiscordLogin />
-            <ThemeSwitch
-              currentTheme={currentTheme}
-              onThemeChange={handleThemeChange}
-            />
-          </div>
         </div>
 
         <FiltersBar
@@ -101,7 +117,32 @@ function App() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
         />
+
+        {/* Main Content */}
+        {currentPage === "techs" && <TechList />}
+        {currentPage === "contributions" && (
+          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+            <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
+            <p>Support and contribution options will be available here.</p>
+          </div>
+        )}
+        {currentPage === "about" && (
+          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+            <h2 className="text-2xl font-bold mb-4">About PR Techs</h2>
+            <p>Project information and details coming soon.</p>
+          </div>
+        )}
       </div>
+
+      {/* Modals */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+      <AccountModal
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+      />
     </div>
   );
 }
