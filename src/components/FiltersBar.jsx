@@ -23,8 +23,10 @@ export default function FiltersBar({ search, setSearch, tags, setTags, sort, set
   }, []);
 
   const toggleTag = (tag) => {
-    const newTags = new Set(tags);
-    newTags.has(tag) ? newTags.delete(tag) : newTags.add(tag);
+    const newTags = new Set();
+    if (!tags.has(tag)) {
+      newTags.add(tag);
+    }
     setTags(newTags);
   };
 
