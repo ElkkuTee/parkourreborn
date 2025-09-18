@@ -4,7 +4,6 @@ import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
 import TechModal from "./components/TechModal";
 import DiscordLogin from "./components/DiscordLogin";
-import { useState } from "react";
 import HamburgerMenu from "./components/HamburgerMenu";
 import SettingsModal from "./components/SettingsModal";
 import AccountModal from "./components/AccountModal";
