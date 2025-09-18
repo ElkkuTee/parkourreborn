@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeSwitch from './ThemeSwitch';
 
-export default function SettingsModal({ isOpen, onClose }) {
+export default function SettingsModal({ isOpen, onClose, currentTheme, setCurrentTheme }) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -32,7 +32,10 @@ export default function SettingsModal({ isOpen, onClose }) {
             <div className="space-y-6">
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <h3 className="text-lg font-medium mb-4 dark:text-white">Theme</h3>
-                <ThemeSwitch />
+                <ThemeSwitch 
+                  currentTheme={currentTheme}
+                  setCurrentTheme={setCurrentTheme}
+                />
               </div>
               {/* Placeholder for future settings sections */}
             </div>
