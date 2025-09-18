@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { getAuth } from 'firebase/auth';
 
 const TechModal = ({ tech, isOpen, onClose }) => {
   const [requesting, setRequesting] = useState(false);
@@ -7,18 +8,25 @@ const TechModal = ({ tech, isOpen, onClose }) => {
   if (!tech) return null;
 
   const handleHelpRequest = async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      alert('Please login first');
-      return;
-    }
-
     try {
       setRequesting(true);
+      
+      // Get fresh token from Firebase Auth instead of localStorage
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        alert('Please login first');
+        return;
+      }
+
+      // Get a fresh token (this will automatically refresh if needed)
+      const token = await user.getIdToken(true);
+      
       const message = prompt('Add an optional message for your help request:');
       if (message === null) {
         setRequesting(false);
-        return; // User cancelled the prompt
+        return;
       }
       
       console.log('Sending help request:', { tech: tech.name, message });
