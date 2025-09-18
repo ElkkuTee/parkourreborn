@@ -138,6 +138,8 @@ function App() {
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
+          currentTheme={currentTheme}
+          onThemeChange={handleThemeChange}
         />
         <AccountModal
           isOpen={isAccountOpen}

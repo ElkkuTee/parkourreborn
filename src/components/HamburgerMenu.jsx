@@ -59,7 +59,7 @@ export default function HamburgerMenu({ currentPage, setCurrentPage }) {
                     setCurrentPage(item.id);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left p-3 rounded-lg flex items-center space-x-3 transition-colors
+                  className={`w-full text-left text-white p-3 rounded-lg flex items-center space-x-3 transition-colors
                     ${currentPage === item.id 
                       ? 'bg-pr-neon text-white' 
                       : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
