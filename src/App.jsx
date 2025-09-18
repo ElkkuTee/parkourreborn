@@ -94,31 +94,27 @@ function App() {
           </h1>
         </div>
 
-        <FiltersBar
-          search={search}
-          setSearch={setSearch}
-          tags={tags}
-          setTags={setTags}
-          sort={sort}
-          setSort={setSort}
-        />
+        {currentPage === "techs" && (
+          <>
+            <FiltersBar
+              search={search}
+              setSearch={setSearch}
+              tags={tags}
+              setTags={setTags}
+              sort={sort}
+              setSort={setSort}
+            />
 
-        {loading ? (
-          <div className="text-center py-8">
-            <p className="text-lg">Loading...</p>
-          </div>
-        ) : (
-          <TechList techs={techs} onTechClick={handleTechClick} />
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-lg">Loading...</p>
+              </div>
+            ) : (
+              <TechList techs={techs} onTechClick={handleTechClick} />
+            )}
+          </>
         )}
 
-        <TechModal
-          tech={selectedTech}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-        />
-
-        {/* Main Content */}
-        {currentPage === "techs" && <TechList />}
         {currentPage === "contributions" && (
           <div className="text-center py-20 text-gray-600 dark:text-gray-400">
             <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
@@ -131,17 +127,23 @@ function App() {
             <p>Project information and details coming soon.</p>
           </div>
         )}
-      </div>
 
-      {/* Modals */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-      <AccountModal
-        isOpen={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-      />
+        <TechModal
+          tech={selectedTech}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+
+        {/* Modals */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
+        <AccountModal
+          isOpen={isAccountOpen}
+          onClose={() => setIsAccountOpen(false)}
+        />
+      </div>
     </div>
   );
 }
