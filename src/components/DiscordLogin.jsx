@@ -1,80 +1,21 @@
 import { useEffect, useState } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-
-// Initialize Firebase client
-const firebaseConfig = {
-  apiKey: "AIzaSyD6zho7jW6s41tbXwQZfBgfGnM1OptC_oE",
-  authDomain: "parkour-reborn-958ae.firebaseapp.com",
-  projectId: "parkour-reborn-958ae",
-  storageBucket: "parkour-reborn-958ae.appspot.com", // Fixed storage bucket URL
-  messagingSenderId: "625252002377",
-  appId: "1:625252002377:web:2524593af493a728a42d98"
-};
-
-// Initialize Firebase only once
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  if (!/already exists/.test(error.message)) {
-    console.error('Firebase initialization error:', error);
-  }
-}
-
-const auth = getAuth(app);
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function DiscordLogin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener first
+    const auth = getAuth();
+    
+    // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
       setLoading(false);
     });
 
-    // Then check for token in URL
-    const params = new URLSearchParams(window.location.search);
-    const customToken = params.get('token');
-    
-    if (customToken) {
-      // Clean URL immediately but don't change loading state yet
-      window.history.replaceState({}, document.title, '/');
-      handleCustomToken(customToken);
-    }
-
     return () => unsubscribe();
   }, []);
-
-  const handleCustomToken = async (customToken) => {
-    try {
-      console.log('Signing in with custom token...');
-      
-      const userCredential = await signInWithCustomToken(auth, customToken);
-      console.log('Sign in successful');
-      
-      const idToken = await userCredential.user.getIdToken();
-      localStorage.setItem('auth_token', idToken);
-      
-      // Set up token refresh
-      setInterval(async () => {
-        const user = auth.currentUser;
-        if (user) {
-          const newToken = await user.getIdToken(true);
-          localStorage.setItem('auth_token', newToken);
-        }
-      }, 3600000); // Refresh token every hour
-      
-      // Don't manually set state - let onAuthStateChanged handle it
-      
-    } catch (error) {
-      console.error('Auth error:', error);
-      alert(`Authentication failed: ${error.message}`);
-      setLoading(false); // Only set loading false on error
-    }
-  };
 
   const handleLogin = () => {
     window.location.href = '/api/auth/discord';
@@ -82,6 +23,7 @@ export default function DiscordLogin() {
 
   const handleLogout = async () => {
     try {
+      const auth = getAuth();
       await auth.signOut();
       localStorage.removeItem('auth_token');
       setIsLoggedIn(false);

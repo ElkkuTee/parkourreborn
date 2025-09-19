@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAuth, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
@@ -24,6 +25,44 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Handle Discord OAuth token processing on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const customToken = params.get('token');
+    
+    if (customToken) {
+      // Clean URL immediately
+      window.history.replaceState({}, document.title, '/');
+      handleCustomToken(customToken);
+    }
+  }, []);
+
+  const handleCustomToken = async (customToken) => {
+    try {
+      console.log('Processing Discord OAuth token...');
+      
+      const auth = getAuth();
+      const userCredential = await signInWithCustomToken(auth, customToken);
+      console.log('Discord authentication successful');
+      
+      const idToken = await userCredential.user.getIdToken();
+      localStorage.setItem('auth_token', idToken);
+      
+      // Set up token refresh
+      setInterval(async () => {
+        const user = auth.currentUser;
+        if (user) {
+          const newToken = await user.getIdToken(true);
+          localStorage.setItem('auth_token', newToken);
+        }
+      }, 3600000); // Refresh token every hour
+      
+    } catch (error) {
+      console.error('Discord authentication error:', error);
+      alert(`Authentication failed: ${error.message}`);
+    }
+  };
 
   const fetchTechs = async () => {
     setLoading(true);
