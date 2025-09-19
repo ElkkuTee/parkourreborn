@@ -37,7 +37,9 @@ export default function HamburgerMenu({ currentPage, setCurrentPage }) {
       if (response.ok) {
         const data = await response.json();
         setIsAdmin(data.isAdmin);
+        console.log('Admin check result:', data.isAdmin);
       } else {
+        console.error('Admin check failed:', response.status, response.statusText);
         setIsAdmin(false);
       }
     } catch (error) {

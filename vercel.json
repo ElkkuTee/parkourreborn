@@ -26,6 +26,14 @@
       "dest": "api/auth/discord/callback.js"
     },
     {
+      "src": "/api/admin/check",
+      "dest": "api/admin/check.js"
+    },
+    {
+      "src": "/api/admin/techs",
+      "dest": "api/admin/techs.js"
+    },
+    {
       "src": "/api/send-request",
       "dest": "api/send-request.js"
     },
