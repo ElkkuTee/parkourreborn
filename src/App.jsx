@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
+import { Analytics } from '@vercel/analytics/react';
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
@@ -194,6 +195,9 @@ function App() {
           onClose={() => setIsAdminOpen(false)}
           onTechsUpdate={fetchTechs}
         />
+
+        {/* Vercel Analytics */}
+        <Analytics />
       </div>
     </div>
   );
