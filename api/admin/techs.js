@@ -1,6 +1,9 @@
 import admin from '../_utils/firebase.js';
 
-const ADMIN_DISCORD_ID = '1020704620722528256';
+const ADMIN_DISCORD_IDS = [
+  '1020704620722528256', 
+  '901026157196107806'   
+];
 
 async function verifyAdmin(req) {
   const idToken = req.headers.authorization?.split('Bearer ')[1];
@@ -10,7 +13,7 @@ async function verifyAdmin(req) {
   const user = await admin.auth().getUser(decodedToken.uid);
   const customClaims = user.customClaims || {};
   
-  if (customClaims.discord_id !== ADMIN_DISCORD_ID) {
+  if (!ADMIN_DISCORD_IDS.includes(customClaims.discord_id)) {
     throw new Error('Unauthorized');
   }
 }

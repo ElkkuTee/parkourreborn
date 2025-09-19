@@ -16,9 +16,12 @@ export default async function handler(req, res) {
     const user = await admin.auth().getUser(decodedToken.uid);
     const customClaims = user.customClaims || {};
 
-    const ADMIN_DISCORD_ID = '1020704620722528256';
+    const ADMIN_DISCORD_IDS = [
+      '1020704620722528256', 
+      '901026157196107806'   
+    ];
     
-    const isAdmin = customClaims.discord_id === ADMIN_DISCORD_ID;
+    const isAdmin = ADMIN_DISCORD_IDS.includes(customClaims.discord_id);
     
     res.status(200).json({ isAdmin });
   } catch (error) {
@@ -26,3 +29,4 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Failed to verify admin status' });
   }
 }
+
