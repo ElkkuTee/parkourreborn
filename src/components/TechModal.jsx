@@ -131,6 +131,23 @@ const TechModal = ({ tech, isOpen, onClose }) => {
               {/* Description */}
               <p className="text-gray-300 mb-6">{tech.description}</p>
 
+              {/* Alternative Names */}
+              {tech.aka && tech.aka.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-400 mb-2">Also known as:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {tech.aka.map((alias, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded-full"
+                      >
+                        {alias}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Bottom row */}
               <div className="flex justify-between items-center">
                 <div className="flex flex-wrap gap-2">

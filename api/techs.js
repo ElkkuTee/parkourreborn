@@ -38,7 +38,8 @@ export default async function handler(req, res) {
           (tech) =>
             tech.name?.toLowerCase().includes(lower) ||
             tech.description?.toLowerCase().includes(lower) ||
-            (tech.tags && tech.tags.some((tag) => tag.toLowerCase().includes(lower)))
+            (tech.tags && tech.tags.some((tag) => tag.toLowerCase().includes(lower))) ||
+            (tech.aka && tech.aka.some((alias) => alias.toLowerCase().includes(lower)))
         );
       }
 
