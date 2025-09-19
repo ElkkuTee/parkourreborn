@@ -29,25 +29,27 @@ export default function DiscordLogin() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const customToken = params.get('token');
-    
-    if (customToken) {
-      handleCustomToken(customToken);
-    }
-
-    // Set up auth state listener
+    // Set up auth state listener first
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
       setLoading(false);
     });
+
+    // Then check for token in URL
+    const params = new URLSearchParams(window.location.search);
+    const customToken = params.get('token');
+    
+    if (customToken) {
+      // Clean URL immediately but don't change loading state yet
+      window.history.replaceState({}, document.title, '/');
+      handleCustomToken(customToken);
+    }
 
     return () => unsubscribe();
   }, []);
 
   const handleCustomToken = async (customToken) => {
     try {
-      setLoading(true);
       console.log('Signing in with custom token...');
       
       const userCredential = await signInWithCustomToken(auth, customToken);
@@ -65,13 +67,12 @@ export default function DiscordLogin() {
         }
       }, 3600000); // Refresh token every hour
       
-      window.history.replaceState({}, document.title, '/');
-      setIsLoggedIn(true);
+      // Don't manually set state - let onAuthStateChanged handle it
+      
     } catch (error) {
       console.error('Auth error:', error);
       alert(`Authentication failed: ${error.message}`);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
     }
   };
 

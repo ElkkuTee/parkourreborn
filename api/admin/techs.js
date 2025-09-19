@@ -1,6 +1,6 @@
 import admin from '../_utils/firebase.js';
 
-const ADMIN_DISCORD_ID = 'YOUR_DISCORD_ID_HERE';
+const ADMIN_DISCORD_ID = '1020704620722528256';
 
 async function verifyAdmin(req) {
   const idToken = req.headers.authorization?.split('Bearer ')[1];
