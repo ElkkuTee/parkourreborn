@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getAuth, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 import FiltersBar from "./components/FiltersBar";
 import TechList from "./components/TechList";
 import ThemeSwitch from "./components/ThemeSwitch";
@@ -42,7 +43,6 @@ function App() {
     try {
       console.log('Processing Discord OAuth token...');
       
-      const auth = getAuth();
       const userCredential = await signInWithCustomToken(auth, customToken);
       console.log('Discord authentication successful');
       
