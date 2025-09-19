@@ -7,6 +7,7 @@ import DiscordLogin from "./components/DiscordLogin";
 import HamburgerMenu from "./components/HamburgerMenu";
 import SettingsModal from "./components/SettingsModal";
 import AccountModal from "./components/AccountModal";
+import AdminModal from "./components/AdminModal";
 
 function App() {
   const [techs, setTechs] = useState([]);
@@ -22,6 +23,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState("techs");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   const fetchTechs = async () => {
     setLoading(true);
@@ -77,6 +79,9 @@ function App() {
     } else if (currentPage === "account") {
       setIsAccountOpen(true);
       setCurrentPage("techs");
+    } else if (currentPage === "admin") {
+      setIsAdminOpen(true);
+      setCurrentPage("techs");
     }
   }, [currentPage]);
 
@@ -107,7 +112,7 @@ function App() {
 
             {loading ? (
               <div className="text-center py-8">
-                <p className="text-lg">Loading...</p>
+                <p className="text-lg text-white dark:text-white">Loading...</p>
               </div>
             ) : (
               <TechList techs={techs} onTechClick={handleTechClick} />
@@ -144,6 +149,11 @@ function App() {
         <AccountModal
           isOpen={isAccountOpen}
           onClose={() => setIsAccountOpen(false)}
+        />
+        <AdminModal
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+          onTechsUpdate={fetchTechs}
         />
       </div>
     </div>

@@ -88,7 +88,7 @@ export default function FiltersBar({ search, setSearch, tags, setTags, sort, set
                   setSort(opt.value);
                   setOpen(false);
                 }}
-                className="px-4 py-2 cursor-pointer hover:bg-pr-neon hover:text-gray-900 transition-colors duration-200 rounded-xl"
+                className="px-4 py-2 cursor-pointer text-white hover:bg-pr-neon hover:text-gray-900 transition-colors duration-200 rounded-xl"
               >
                 {opt.label}
               </div>

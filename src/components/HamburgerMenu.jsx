@@ -1,15 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { getAuth } from 'firebase/auth';
 
 export default function HamburgerMenu({ currentPage, setCurrentPage }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) return;
+      
+      const token = await user.getIdToken();
+      const response = await fetch('/api/admin/check', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsAdmin(data.isAdmin);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const menuItems = [
     { id: 'techs', icon: '📜', label: 'Tech List' },
     { id: 'account', icon: '📊', label: 'Stats' },
     { id: 'contributions', icon: '🤝', label: 'Contributions' },
     { id: 'about', icon: 'ℹ️', label: 'About' },
-    { id: 'settings', icon: '⚙', label: 'Settings' }
+    { id: 'settings', icon: '⚙', label: 'Settings' },
+    ...(isAdmin ? [{ id: 'admin', icon: '👑', label: 'Admin Panel' }] : [])
   ];
 
   return (
