@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 export default function DiscordLogin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getAuth();
-    
     // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -23,7 +22,6 @@ export default function DiscordLogin() {
 
   const handleLogout = async () => {
     try {
-      const auth = getAuth();
       await auth.signOut();
       localStorage.removeItem('auth_token');
       setIsLoggedIn(false);

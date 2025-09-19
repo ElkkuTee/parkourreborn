@@ -1,21 +1,33 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { getAuth } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 export default function HamburgerMenu({ currentPage, setCurrentPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    checkAdminStatus();
+    // Listen for auth state changes and check admin status when user logs in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        checkAdminStatus();
+      } else {
+        setIsAdmin(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const checkAdminStatus = async () => {
     try {
-      const auth = getAuth();
       const user = auth.currentUser;
       
-      if (!user) return;
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
       
       const token = await user.getIdToken();
       const response = await fetch('/api/admin/check', {
@@ -25,9 +37,12 @@ export default function HamburgerMenu({ currentPage, setCurrentPage }) {
       if (response.ok) {
         const data = await response.json();
         setIsAdmin(data.isAdmin);
+      } else {
+        setIsAdmin(false);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
+      setIsAdmin(false);
     }
   };
 
