@@ -45,29 +45,6 @@ export default function TechProficiency({ tech, userStats, onStatsUpdate }) {
     }
   };
 
-  const handleAttemptedToggle = async () => {
-    if (!user || !tech) return;
-    
-    setUpdating(true);
-    try {
-      if (currentStats?.attempted) {
-        // Remove the tech proficiency entirely
-        await removeTechProficiency(user.uid, tech.id);
-        setCurrentStats(null);
-      } else {
-        // Mark as attempted without proficiency level
-        await updateTechProficiency(user.uid, tech.id, null, true);
-        setCurrentStats({ attempted: true, proficiencyLevel: null });
-      }
-      onStatsUpdate?.();
-    } catch (error) {
-      console.error('Error updating attempted status:', error);
-      alert('Failed to update status. Please try again.');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
   const handleRemoveProficiency = async () => {
     if (!user || !tech || !currentStats) return;
     
@@ -99,52 +76,35 @@ export default function TechProficiency({ tech, userStats, onStatsUpdate }) {
     <div className="mt-6 p-4 bg-gray-800 rounded-lg">
       <h3 className="text-lg font-semibold text-pr-neon mb-3">Tech Proficiency</h3>
       
-      {/* Attempted Toggle */}
-      <div className="mb-4">
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={currentStats?.attempted || false}
-            onChange={handleAttemptedToggle}
-            disabled={updating}
-            className="w-4 h-4 text-pr-neon bg-gray-700 border-gray-600 rounded focus:ring-pr-neon"
-          />
-          <span className="text-gray-300">I have attempted to learn this tech</span>
-        </label>
-      </div>
-
-      {/* Proficiency Levels */}
-      {currentStats?.attempted && (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-400 mb-3">How well can you perform this tech?</p>
-          
-          {PROFICIENCY_LEVELS.map((level) => (
-            <label key={level.value} className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="radio"
-                name={`proficiency-${tech.id}`}
-                value={level.value}
-                checked={currentStats?.proficiencyLevel === level.value}
-                onChange={() => handleProficiencyChange(level.value)}
-                disabled={updating}
-                className="w-4 h-4 text-pr-neon bg-gray-700 border-gray-600 focus:ring-pr-neon"
-              />
-              <div className={`w-3 h-3 rounded-full ${level.color}`}></div>
-              <span className="text-gray-300 text-sm">{level.label}</span>
-            </label>
-          ))}
-          
-          {currentStats?.proficiencyLevel && (
-            <button
-              onClick={handleRemoveProficiency}
+      <div className="space-y-2">
+        <p className="text-sm text-gray-400 mb-3">How well can you perform this tech?</p>
+        
+        {PROFICIENCY_LEVELS.map((level) => (
+          <label key={level.value} className="flex items-center space-x-3 cursor-pointer">
+            <input
+              type="radio"
+              name={`proficiency-${tech.id}`}
+              value={level.value}
+              checked={currentStats?.proficiencyLevel === level.value}
+              onChange={() => handleProficiencyChange(level.value)}
               disabled={updating}
-              className="mt-3 text-sm text-red-400 hover:text-red-300 transition-colors"
-            >
-              Remove proficiency rating
-            </button>
-          )}
-        </div>
-      )}
+              className="w-4 h-4 text-pr-neon bg-gray-700 border-gray-600 focus:ring-pr-neon"
+            />
+            <div className={`w-3 h-3 rounded-full ${level.color}`}></div>
+            <span className="text-gray-300 text-sm">{level.label}</span>
+          </label>
+        ))}
+        
+        {currentStats?.proficiencyLevel && (
+          <button
+            onClick={handleRemoveProficiency}
+            disabled={updating}
+            className="mt-3 text-sm text-red-400 hover:text-red-300 transition-colors"
+          >
+            Remove proficiency rating
+          </button>
+        )}
+      </div>
       
       {updating && (
         <div className="mt-3 text-center">

@@ -50,7 +50,7 @@ export default function HamburgerMenu({ currentPage, setCurrentPage }) {
 
   const menuItems = [
     { id: 'techs', icon: '📜', label: 'Tech List' },
-    { id: 'account', icon: '📊', label: 'Stats' },
+    { id: 'stats', icon: '📊', label: 'Stats' },
     { id: 'contributions', icon: '🤝', label: 'Contributions' },
     { id: 'about', icon: 'ℹ️', label: 'About' },
     { id: 'settings', icon: '⚙', label: 'Settings' },

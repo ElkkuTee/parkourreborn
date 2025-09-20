@@ -17,7 +17,6 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
   const [userStats, setUserStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [filterLevel, setFilterLevel] = useState('all');
-  const [filterDifficulty, setFilterDifficulty] = useState('all');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -31,6 +30,13 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
     });
     return () => unsubscribe();
   }, []);
+
+  // Reload stats when modal opens to ensure fresh data
+  useEffect(() => {
+    if (isOpen && user) {
+      loadUserStats(user.uid);
+    }
+  }, [isOpen, user]);
 
   const loadUserStats = async (userId) => {
     try {
@@ -80,11 +86,6 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
         } else {
           if (techStats?.proficiencyLevel !== parseInt(filterLevel)) return false;
         }
-      }
-      
-      // Filter by difficulty
-      if (filterDifficulty !== 'all') {
-        if (tech.difficulty !== parseInt(filterDifficulty)) return false;
       }
       
       return true;
@@ -163,7 +164,7 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              className="relative bg-pr-dark p-6 rounded-lg shadow-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto"
+              className="relative bg-pr-dark p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -175,7 +176,7 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
                 </svg>
               </button>
 
-              <h2 className="text-2xl font-bold text-pr-neon mb-6">Your Statistics</h2>
+              <h2 className="text-2xl font-bold text-pr-neon mb-6">Statistics</h2>
 
               {loading ? (
                 <div className="text-center py-8">
@@ -233,19 +234,6 @@ export default function StatisticsModal({ isOpen, onClose, techs }) {
                         <option value="unrated">Unrated Only</option>
                         {PROFICIENCY_LEVELS.map(level => (
                           <option key={level.value} value={level.value}>{level.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-1">Filter by Difficulty</label>
-                      <select
-                        value={filterDifficulty}
-                        onChange={(e) => setFilterDifficulty(e.target.value)}
-                        className="bg-gray-800 text-white border border-gray-600 rounded px-3 py-1"
-                      >
-                        <option value="all">All Difficulties</option>
-                        {[1,2,3,4,5,6,7,8,9,10].map(diff => (
-                          <option key={diff} value={diff}>Difficulty {diff}</option>
                         ))}
                       </select>
                     </div>

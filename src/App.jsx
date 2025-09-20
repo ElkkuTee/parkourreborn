@@ -9,7 +9,7 @@ import TechModal from "./components/TechModal";
 import DiscordLogin from "./components/DiscordLogin";
 import HamburgerMenu from "./components/HamburgerMenu";
 import SettingsModal from "./components/SettingsModal";
-import AccountModal from "./components/AccountModal";
+import StatisticsModal from "./components/StatisticsModal";
 import AdminModal from "./components/AdminModal";
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("techs");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   // Handle Discord OAuth token processing on page load
@@ -116,8 +116,8 @@ function App() {
     if (currentPage === "settings") {
       setIsSettingsOpen(true);
       setCurrentPage("techs");
-    } else if (currentPage === "account") {
-      setIsAccountOpen(true);
+    } else if (currentPage === "stats") {
+      setIsStatsOpen(true);
       setCurrentPage("techs");
     } else if (currentPage === "admin") {
       setIsAdminOpen(true);
@@ -186,9 +186,9 @@ function App() {
           currentTheme={currentTheme}
           onThemeChange={handleThemeChange}
         />
-        <AccountModal
-          isOpen={isAccountOpen}
-          onClose={() => setIsAccountOpen(false)}
+        <StatisticsModal
+          isOpen={isStatsOpen}
+          onClose={() => setIsStatsOpen(false)}
           techs={techs}
         />
         <AdminModal
