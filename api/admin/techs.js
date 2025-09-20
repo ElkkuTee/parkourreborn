@@ -64,18 +64,35 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Tech name is required' });
       }
       
+      if (!description || !description.trim()) {
+        return res.status(400).json({ error: 'Tech description is required' });
+      }
+      
       // Generate unique document ID
       const docId = await findAvailableDocumentId(db, name.trim());
       
-      await db.collection('techs').doc(docId).set({
+      // Build document with required fields
+      const techDoc = {
         name: name.trim(),
-        description,
-        difficulty: Number(difficulty),
-        tags: tags || [],
-        aka: aka || [],
-        videoUrl: videoUrl || '',
+        description: description.trim(),
+        difficulty: difficulty ? String(difficulty) : "?",
         createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+      };
+      
+      // Only include optional fields if they have values
+      if (tags && Array.isArray(tags) && tags.length > 0) {
+        techDoc.tags = tags;
+      }
+      
+      if (aka && Array.isArray(aka) && aka.length > 0) {
+        techDoc.aka = aka;
+      }
+      
+      if (videoUrl && videoUrl.trim()) {
+        techDoc.videoUrl = videoUrl.trim();
+      }
+      
+      await db.collection('techs').doc(docId).set(techDoc);
       
       res.status(201).json({ id: docId, message: 'Tech created successfully' });
       
@@ -83,14 +100,56 @@ export default async function handler(req, res) {
       // Update existing tech
       const { id, ...updateData } = req.body;
       
-      if (updateData.difficulty) {
-        updateData.difficulty = Number(updateData.difficulty);
+      // Build update object with only fields that should be updated
+      const updateDoc = {
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+      
+      // Handle required fields
+      if (updateData.name !== undefined) {
+        if (!updateData.name || !updateData.name.trim()) {
+          return res.status(400).json({ error: 'Tech name cannot be empty' });
+        }
+        updateDoc.name = updateData.name.trim();
       }
       
-      await db.collection('techs').doc(id).update({
-        ...updateData,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+      if (updateData.description !== undefined) {
+        if (!updateData.description || !updateData.description.trim()) {
+          return res.status(400).json({ error: 'Tech description cannot be empty' });
+        }
+        updateDoc.description = updateData.description.trim();
+      }
+      
+      if (updateData.difficulty !== undefined) {
+        updateDoc.difficulty = updateData.difficulty ? String(updateData.difficulty) : "?";
+      }
+      
+      // Handle optional fields - only update if they have values, otherwise remove them
+      if (updateData.tags !== undefined) {
+        if (Array.isArray(updateData.tags) && updateData.tags.length > 0) {
+          updateDoc.tags = updateData.tags;
+        } else {
+          updateDoc.tags = admin.firestore.FieldValue.delete();
+        }
+      }
+      
+      if (updateData.aka !== undefined) {
+        if (Array.isArray(updateData.aka) && updateData.aka.length > 0) {
+          updateDoc.aka = updateData.aka;
+        } else {
+          updateDoc.aka = admin.firestore.FieldValue.delete();
+        }
+      }
+      
+      if (updateData.videoUrl !== undefined) {
+        if (updateData.videoUrl && updateData.videoUrl.trim()) {
+          updateDoc.videoUrl = updateData.videoUrl.trim();
+        } else {
+          updateDoc.videoUrl = admin.firestore.FieldValue.delete();
+        }
+      }
+      
+      await db.collection('techs').doc(id).update(updateDoc);
       
       res.status(200).json({ message: 'Tech updated successfully' });
       
@@ -116,4 +175,3 @@ export default async function handler(req, res) {
     }
   }
 }
-
