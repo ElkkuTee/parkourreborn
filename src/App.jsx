@@ -19,7 +19,15 @@ function App() {
   const [tags, setTags] = useState(new Set());
   const [sort, setSort] = useState("az");
   const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem("theme") || "blue";
+    const savedTheme = localStorage.getItem("theme");
+    const purpleUnlocked = localStorage.getItem('purpleThemeUnlocked') === 'true';
+    
+    // If saved theme is purple but it's not unlocked, default to blue
+    if (savedTheme === 'purple' && !purpleUnlocked) {
+      return 'blue';
+    }
+    
+    return savedTheme || "blue";
   });
   const [selectedTech, setSelectedTech] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -14,4 +14,8 @@
   [data-theme='green'] {
     --pr-neon: 74 255 74; /* Green in RGB */
   }
+
+  [data-theme='purple'] {
+    --pr-neon: 140 0 191; /* Purple in RGB */
+  }
 }
