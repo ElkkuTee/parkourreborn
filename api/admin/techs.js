@@ -18,6 +18,38 @@ async function verifyAdmin(req) {
   }
 }
 
+// Function to generate document ID from tech name
+function generateDocumentId(techName) {
+  return techName
+    .toLowerCase()
+    .replace(/\s+/g, '') // Remove all spaces (including multiple consecutive spaces)
+    .replace(/[^a-z0-9]/g, ''); // Remove all special characters and punctuation
+}
+
+// Function to find available document ID (handles duplicates)
+async function findAvailableDocumentId(db, baseName) {
+  const baseId = generateDocumentId(baseName);
+  
+  // Check if base ID is available
+  const baseDoc = await db.collection('techs').doc(baseId).get();
+  if (!baseDoc.exists) {
+    return baseId;
+  }
+  
+  // If base ID exists, try with number suffixes
+  let counter = 2;
+  while (counter <= 100) { // Prevent infinite loop
+    const numberedId = `${baseId}${counter}`;
+    const numberedDoc = await db.collection('techs').doc(numberedId).get();
+    if (!numberedDoc.exists) {
+      return numberedId;
+    }
+    counter++;
+  }
+  
+  throw new Error('Unable to generate unique document ID after 100 attempts');
+}
+
 const db = admin.firestore();
 
 export default async function handler(req, res) {
@@ -28,8 +60,15 @@ export default async function handler(req, res) {
       // Add new tech
       const { name, description, difficulty, tags, aka, videoUrl } = req.body;
       
-      const docRef = await db.collection('techs').add({
-        name,
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: 'Tech name is required' });
+      }
+      
+      // Generate unique document ID
+      const docId = await findAvailableDocumentId(db, name.trim());
+      
+      await db.collection('techs').doc(docId).set({
+        name: name.trim(),
         description,
         difficulty: Number(difficulty),
         tags: tags || [],
@@ -38,7 +77,7 @@ export default async function handler(req, res) {
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       
-      res.status(201).json({ id: docRef.id, message: 'Tech created successfully' });
+      res.status(201).json({ id: docId, message: 'Tech created successfully' });
       
     } else if (req.method === 'PUT') {
       // Update existing tech
@@ -77,3 +116,4 @@ export default async function handler(req, res) {
     }
   }
 }
+
