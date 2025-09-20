@@ -15,14 +15,13 @@ export default function ThemeSwitch({ currentTheme, onThemeChange }) {
 
   const handleThemeClick = (theme) => {
     if (theme === 'purple') {
-      if (currentTheme === 'purple') {
-        // Disable purple theme if currently selected
-        setPurpleUnlocked(false);
-        onThemeChange('blue'); // Switch to default theme
-      } else {
-        onThemeChange(theme);
-      }
+      onThemeChange(theme);
       return;
+    }
+
+    // If switching away from purple theme, disable it completely
+    if (currentTheme === 'purple' && theme !== 'purple') {
+      setPurpleUnlocked(false);
     }
 
     // Handle easter egg sequence tracking
@@ -39,6 +38,8 @@ export default function ThemeSwitch({ currentTheme, onThemeChange }) {
       if (newSequence.length === requiredSequence.length * totalSequences) {
         setPurpleUnlocked(true);
         setClickSequence([]); // Reset sequence
+        onThemeChange('purple'); // Auto-equip purple theme
+        return; // Don't switch to the clicked theme
       }
     } else {
       // Wrong click, reset sequence
