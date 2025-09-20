@@ -75,8 +75,7 @@ export default async function handler(req, res) {
       const techDoc = {
         name: name.trim(),
         description: description.trim(),
-        difficulty: difficulty ? String(difficulty) : "?",
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        difficulty: difficulty ? String(difficulty) : "?"
       };
       
       // Only include optional fields if they have values
@@ -101,9 +100,7 @@ export default async function handler(req, res) {
       const { id, ...updateData } = req.body;
       
       // Build update object with only fields that should be updated
-      const updateDoc = {
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      };
+      const updateDoc = {};
       
       // Handle required fields
       if (updateData.name !== undefined) {
@@ -175,3 +172,4 @@ export default async function handler(req, res) {
     }
   }
 }
+
