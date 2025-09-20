@@ -1,9 +1,40 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { getAuth } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getUserStats } from '../services/userStats';
+import TechProficiency from './TechProficiency';
 
 const TechModal = ({ tech, isOpen, onClose }) => {
   const [requesting, setRequesting] = useState(false);
+  const [userStats, setUserStats] = useState({});
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
+      setUser(user);
+      if (user) {
+        loadUserStats(user.uid);
+      } else {
+        setUserStats({});
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const loadUserStats = async (userId) => {
+    try {
+      const stats = await getUserStats(userId);
+      setUserStats(stats);
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
+
+  const handleStatsUpdate = () => {
+    if (user) {
+      loadUserStats(user.uid);
+    }
+  };
 
   if (!tech) return null;
 
@@ -11,7 +42,6 @@ const TechModal = ({ tech, isOpen, onClose }) => {
     try {
       setRequesting(true);
       
-      // Get fresh token from Firebase Auth instead of localStorage
       const auth = getAuth();
       const user = auth.currentUser;
       
@@ -20,7 +50,6 @@ const TechModal = ({ tech, isOpen, onClose }) => {
         return;
       }
 
-      // Get a fresh token (this will automatically refresh if needed)
       const token = await user.getIdToken(true);
       
       const message = prompt('Add an optional message for your help request:');
@@ -63,7 +92,6 @@ const TechModal = ({ tech, isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -72,14 +100,12 @@ const TechModal = ({ tech, isOpen, onClose }) => {
             onClick={onClose}
           />
 
-          {/* Flex Container for Centering */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
           >
-            {/* Modal Content */}
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
@@ -87,32 +113,17 @@ const TechModal = ({ tech, isOpen, onClose }) => {
               className="relative bg-pr-dark p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-pr-neon transition-colors"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
-              {/* Title */}
-              <h2 className="text-2xl font-bold text-pr-neon mb-4">
-                {tech.name}
-              </h2>
+              <h2 className="text-2xl font-bold text-pr-neon mb-4">{tech.name}</h2>
 
-              {/* Video */}
               <div className="aspect-w-16 aspect-h-9 mb-4">
                 {tech.videoUrl ? (
                   <iframe
@@ -128,28 +139,12 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                 )}
               </div>
 
-              {/* Description */}
-              <p className="text-gray-300 mb-6">{tech.description}</p>
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
+                <p className="text-gray-300">{tech.description}</p>
+              </div>
 
-              {/* Alternative Names */}
-              {tech.aka && tech.aka.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-400 mb-2">Also known as:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {tech.aka.map((alias, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded-full"
-                      >
-                        {alias}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom row */}
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <div className="flex flex-wrap gap-2">
                   {tech.tags.map((tag) => (
                     <span
@@ -160,12 +155,15 @@ const TechModal = ({ tech, isOpen, onClose }) => {
                     </span>
                   ))}
                 </div>
-                <span className="text-pr-neon ml-4">
-                  Difficulty {tech.difficulty}
-                </span>
+                <span className="text-pr-neon ml-4">Difficulty {tech.difficulty}</span>
               </div>
 
-              {/* Request Help Button */}
+              <TechProficiency 
+                tech={tech} 
+                userStats={userStats} 
+                onStatsUpdate={handleStatsUpdate}
+              />
+
               <button
                 onClick={handleHelpRequest}
                 disabled={requesting}

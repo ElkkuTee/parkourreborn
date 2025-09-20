@@ -189,6 +189,7 @@ function App() {
         <AccountModal
           isOpen={isAccountOpen}
           onClose={() => setIsAccountOpen(false)}
+          techs={techs}
         />
         <AdminModal
           isOpen={isAdminOpen}
