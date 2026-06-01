@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: 'PARKOUR Reborn',
     title: siteTitle,
     description: siteDescription,
-    images: [{ url: '/embed.png', width: 1200, height: 630, alt: 'PARKOUR Reborn' }],
+    images: [{ url: '/embed.png', width: 768, height: 432, alt: 'PARKOUR Reborn' }],
   },
   twitter: {
     card: 'summary_large_image',
