@@ -1,0 +1,31 @@
+export const images = {
+  logo: '/logo.png',
+  heroLogo: '/hero-logo.png',
+  backgrounds: {
+    header: '/backgrounds/header.png',
+    icons: '/backgrounds/icons.png',
+    tools: {
+      bg: '/backgrounds/tools/bg.png',
+      xpcalculator: '/backgrounds/tools/xpcalculator.png',
+      techlist: '/backgrounds/tools/techlist.png',
+    },
+    games: {
+      bg: '/backgrounds/games/bg.png',
+      parkourguessr: '/backgrounds/games/parkourguessr.png',
+      incrementalparkour: '/backgrounds/games/incrementalparkour.png',
+      bagopensimulator: '/backgrounds/games/bagopensimulator.png',
+    },
+    community: {
+      bg: '/backgrounds/community/bg.png',
+      map: '/backgrounds/community/map.png',
+      contributions: '/backgrounds/community/contributions.png',
+    },
+    links: {
+      discord: '/backgrounds/links/discord.png',
+      gamepage: '/backgrounds/links/gamepage.png',
+      roblox: '/backgrounds/links/roblox.png',
+      wiki: '/backgrounds/links/wiki.png',
+      youtube: '/backgrounds/links/youtube.png',
+    },
+  },
+} as const;
