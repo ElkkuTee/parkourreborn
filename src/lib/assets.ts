@@ -1,6 +1,10 @@
 export const images = {
-  logo: '/logo.png',
-  heroLogo: '/hero-logo.png',
+  logo: {
+    main: '/logo/logo.png',
+    icon: '/logo/icon.ico',
+    hero: '/logo/hero-logo.png',
+    og: '/logo/og-logo.png',
+  },
   backgrounds: {
     header: '/backgrounds/header.png',
     icons: '/backgrounds/icons.png',

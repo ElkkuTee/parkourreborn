@@ -1,28 +1,25 @@
 import type { Metadata } from 'next';
 import Menu from '@/components/menu';
 import './globals.css';
+import { Analytics } from "@vercel/analytics/next"
+import { images } from '@/lib/assets';
 
-const siteUrl = 'https://parkourreborn-new.vercel.app';
-
-const siteTitle = 'Parkour Reborn Hub';
-const siteDescription = 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.';
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: siteTitle,
-  description: siteDescription,
-  icons: { icon: '/logo.ico' },
+export const metadata: Metadata = { 
+  metadataBase: new URL('https://parkourreborn-new.vercel.app'),
+  title: 'Parkour Reborn Hub',
+  description: 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.',
+  icons: {icon: images.logo.icon},
   openGraph: {
     siteName: 'PARKOUR Reborn',
-    title: siteTitle,
-    description: siteDescription,
-    images: [{ url: '/og-logo.png', width: 760, height: 399, alt: 'PARKOUR Reborn' }],
+    title: 'Parkour Reborn Hub',
+    description: 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.',
+    images: [{url: images.logo.og, width: 760, height: 399, alt: 'PARKOUR Reborn'}],
   },
   twitter: {
     card: 'summary_large_image',
-    title: siteTitle,
-    description: siteDescription,
-    images: ['/og-logo.png'],
+    title: 'Parkour Reborn Hub',
+    description: 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.',
+    images: [images.logo.og],
   },
 };
 
@@ -32,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Menu />
         {children}
+        <Analytics/>
       </body>
     </html>
   );

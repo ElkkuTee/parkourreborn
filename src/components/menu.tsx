@@ -24,8 +24,8 @@ export default function Menu() {
 
       <aside className={`side-menu ${open ? 'is-open' : ''}`} aria-hidden={!open}>
         <div className="side-menu__brand">
-          <Image src={images.logo} alt="" width={34} height={34} />
-          <span>Hub</span>
+          <Image src={images.logo.main} alt="" width={34} height={34} />
+          <span>PR Hub</span>
         </div>
         <nav className="side-menu__nav" aria-label="Main menu">
           <Link href="/" className="side-menu__link" onClick={() => setOpen(false)}>
