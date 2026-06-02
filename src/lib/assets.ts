@@ -11,7 +11,8 @@ export const images = {
     tools: {
       bg: '/backgrounds/tools/bg.webp',
       xpcalc: '/backgrounds/tools/xpcalc.webp',
-      techlist: '/backgrounds/tools/techlist.png',
+      techlist: '/backgrounds/tools/techlist.webp',
+      timetrialhub: '/backgrounds/tools/timetrialhub.webp',
     },
     games: {
       bg: '/backgrounds/games/bg.webp',

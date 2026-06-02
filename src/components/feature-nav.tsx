@@ -15,7 +15,7 @@ const features: Feature[] = [
     items: [
       { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/' },
       { title: 'XP Calculator', image: images.backgrounds.tools.xpcalc, href: '/xpcalc' },
-      { title: 'Time Trial Hub', image: images.backgrounds.tools.xpcalc, href: '/' },
+      { title: 'Time Trial Hub', image: images.backgrounds.tools.timetrialhub, href: '/' },
     ],
   },
   {
