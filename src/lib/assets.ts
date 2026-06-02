@@ -32,4 +32,10 @@ export const images = {
       youtube: '/backgrounds/links/youtube.png',
     },
   },
+  elements: {
+    map: {
+      normal: '/elements/map/normal.jpg',
+      clean: '/elements/map/clean.jpg',
+    },
+  },
 } as const;

@@ -30,7 +30,7 @@ const features: Feature[] = [
     title: 'Community',
     bg: images.backgrounds.community.bg,
     items: [
-      { title: 'Map', image: images.backgrounds.community.map, href: '/' },
+      { title: 'Map', image: images.backgrounds.community.map, href: '/map' },
       { title: 'Contributions', image: images.backgrounds.community.contributions, href: '/' },
     ],
   },

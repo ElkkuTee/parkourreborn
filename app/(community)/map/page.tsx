@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import XPCalculator from '@/components/tools/xpcalc';
+import MapCard from '@/components/community/mapcard';
+import PageHero from '@/components/page-hero';
+import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
-  title: 'XP Calculator',
-  description: 'Calculate PARKOUR Reborn levels, XP, multipliers, and combo score.',
+  title: 'Map',
+  description: 'View the PARKOUR Reborn world map.',
 };
 
 export default function Page() {
@@ -15,7 +17,8 @@ export default function Page() {
           <Link className="back-btn" href="/">
             Back
           </Link>
-          <XPCalculator />
+          <PageHero eyebrow="Community" title="Map" image={images.backgrounds.community.map} />
+          <MapCard image={images.elements.map.normal} />
         </div>
       </section>
     </main>
