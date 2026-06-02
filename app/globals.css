@@ -66,14 +66,14 @@ button {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(5, 8, 13, 0.18), rgba(5, 8, 13, 0.94) 64rem),
-    url('/backgrounds/header.png') center top / cover no-repeat,
+    url('/backgrounds/header.webp') center top / cover no-repeat,
     #05080d;
 }
 
 .hub-bg__icons {
   position: absolute;
   inset: 0;
-  background-image: url('/backgrounds/icons.png');
+  background-image: url('/backgrounds/icons.webp');
   background-size: 390px auto;
   background-repeat: repeat;
   background-position: 0 0;
