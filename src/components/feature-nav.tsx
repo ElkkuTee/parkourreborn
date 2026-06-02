@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { images } from '@/lib/assets';
 
 type NavItem = {title: string; image: string; href: string;};
@@ -15,6 +15,7 @@ const features: Feature[] = [
     items: [
       { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/' },
       { title: 'XP Calculator', image: images.backgrounds.tools.xpcalc, href: '/xpcalc' },
+      { title: 'Time Trial Hub', image: images.backgrounds.tools.xpcalc, href: '/' },
     ],
   },
   {
@@ -38,9 +39,41 @@ const features: Feature[] = [
 
 const columnsFor = (count: number) => (count === 4 ? 2 : Math.min(count, 3));
 
+const frameWidth = (columns: number) => {
+  if (window.innerWidth <= 532) return columns === 1 ? 188 : 365;
+  if (window.innerWidth <= 900) return columns === 1 ? 192 : 370;
+  return columns === 1 ? 216 : columns === 2 ? 416 : 616;
+};
+
 export default function FeatureNav() {
   const [open, setOpen] = useState<string | null>(null);
+  const [cols, setCols] = useState<Record<string, number>>({});
   const navRef = useRef<HTMLDivElement>(null);
+  const shellRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const columnsThatFit = useCallback((title: string, count: number) => {
+    const shell = shellRefs.current[title];
+    if (!shell) return columnsFor(count);
+
+    const rect = shell.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    const side = Math.min(center, window.innerWidth - center) - 8;
+    const available = Math.max(0, side * 2);
+    const max = columnsFor(count);
+
+    for (let next = max; next > 1; next -= 1) {
+      if (frameWidth(next) <= available) return next;
+    }
+
+    return 1;
+  }, []);
+
+  const updateCols = useCallback(() => {
+    if (!open) return;
+    const card = features.find((item) => item.title === open);
+    if (!card) return;
+    setCols((current) => ({...current, [open]: columnsThatFit(open, card.items.length)}));
+  }, [columnsThatFit, open]);
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
@@ -60,16 +93,31 @@ export default function FeatureNav() {
     };
   }, []);
 
+  useEffect(() => {
+    updateCols();
+    window.addEventListener('resize', updateCols);
+    return () => window.removeEventListener('resize', updateCols);
+  }, [updateCols]);
+
   return (
     <section className="feature-grid" aria-label="Hub sections" ref={navRef}>
       {features.map((card) => {
         const isOpen = open === card.title;
         const panelId = `feature-nav-${card.title.toLowerCase()}`;
-        const columns = columnsFor(card.items.length);
+        const columns = cols[card.title] ?? columnsFor(card.items.length);
+        const toggle = () => {
+          if (isOpen) {
+            setOpen(null);
+            return;
+          }
+
+          setCols((current) => ({...current, [card.title]: columnsThatFit(card.title, card.items.length)}));
+          setOpen(card.title);
+        };
 
         return (
-          <div className={`feature-card-shell ${isOpen ? 'is-open' : ''}`} key={card.title}>
-            <button className="feature-card" type="button" aria-expanded={isOpen} aria-controls={panelId} onClick={() => setOpen((current) => (current === card.title ? null : card.title))}>
+          <div className={`feature-card-shell ${isOpen ? 'is-open' : ''}`} key={card.title} ref={(element) => { shellRefs.current[card.title] = element; }}>
+            <button className="feature-card" type="button" aria-expanded={isOpen} aria-controls={panelId} onClick={toggle}>
               <span className="feature-card__image" style={{backgroundImage: `url(${card.bg})`}} />
               <span className="feature-card__shade" />
               <span className="feature-card__content">

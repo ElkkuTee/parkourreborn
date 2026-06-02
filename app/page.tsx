@@ -45,10 +45,12 @@ export default function Home() {
 }
 
 function LinkGroup({ title, links }: { title: string; links: LinkCard[] }) {
+  const gridClass = title === 'Official' ? 'link-grid link-grid--official' : 'link-grid link-grid--creator';
+
   return (
     <div className="link-group">
       <h2>{title}</h2>
-      <div className="link-grid">
+      <div className={gridClass}>
         {links.map((link) => (
           <a className="link-card" href={link.url} key={link.name} target="_blank" rel="noopener noreferrer">
             <span className="link-card__image" style={{backgroundImage: `url(${link.bg})`}} />

@@ -435,15 +435,15 @@ button {
 }
 
 .feature-nav-frame--1 {
-  width: min(214px, calc(100vw - 32px));
+  width: min(216px, calc(100vw - 32px));
 }
 
 .feature-nav-frame--2 {
-  width: min(414px, calc(100vw - 32px));
+  width: min(416px, calc(100vw - 32px));
 }
 
 .feature-nav-frame--3 {
-  width: min(614px, calc(100vw - 32px));
+  width: min(616px, calc(100vw - 32px));
 }
 
 .feature-nav {
@@ -464,29 +464,19 @@ button {
 .feature-nav__items {
   position: relative;
   z-index: 1;
-  display: grid;
-  width: max-content;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
   justify-content: center;
   gap: 10px;
 }
 
-.feature-nav-frame--1 .feature-nav__items {
-  grid-template-columns: 190px;
-}
-
-.feature-nav-frame--2 .feature-nav__items {
-  grid-template-columns: repeat(2, 190px);
-}
-
-.feature-nav-frame--3 .feature-nav__items {
-  grid-template-columns: repeat(3, 190px);
-}
-
 .feature-nav__item {
   position: relative;
   isolation: isolate;
+  flex: 0 0 190px;
   width: 190px;
   height: 108px;
   overflow: hidden;
@@ -606,6 +596,14 @@ button {
   gap: 9px;
 }
 
+.link-grid--official {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.link-grid--creator {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .link-card {
   min-height: 68px;
 }
@@ -666,45 +664,41 @@ button {
   }
 
   .feature-nav-frame--1 {
-    width: min(190px, calc(100vw - 22px));
+    width: min(192px, calc(100vw - 22px));
   }
 
   .feature-nav-frame--2 {
-    width: min(368px, calc(100vw - 22px));
+    width: min(370px, calc(100vw - 22px));
   }
 
   .feature-nav-frame--3 {
-    width: min(546px, calc(100vw - 22px));
+    width: min(370px, calc(100vw - 22px));
   }
 
   .feature-nav {
     max-height: min(520px, 58vh);
+    overflow-x: hidden;
     padding: 10px;
   }
 
   .feature-nav__items {
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-  }
-
-  .feature-nav-frame--1 .feature-nav__items {
-    grid-template-columns: 170px;
-  }
-
-  .feature-nav-frame--2 .feature-nav__items {
-    grid-template-columns: repeat(2, 170px);
-  }
-
-  .feature-nav-frame--3 .feature-nav__items {
-    grid-template-columns: repeat(3, 170px);
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    justify-content: center;
   }
 
   .feature-nav__item {
+    flex: 0 0 170px;
     width: 170px;
     height: 96px;
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 532px) {
   .hub-page {
     width: calc(100% - 14px);
   }
@@ -712,15 +706,6 @@ button {
   .hub-container {
     gap: 12px;
     padding: 12px;
-  }
-
-  .hero-panel {
-    min-height: 190px;
-    padding: 28px 12px;
-  }
-
-  .hero-panel__logo img {
-    width: min(100%, 285px);
   }
 
   .link-grid {
@@ -735,22 +720,58 @@ button {
   .feature-nav-frame--1,
   .feature-nav-frame--2,
   .feature-nav-frame--3 {
-    width: min(100%, calc(100vw - 14px));
+    width: min(365px, calc(100vw - 14px));
+    max-width: calc(100vw - 14px);
+  }
+
+  .feature-nav-frame--1 {
+    width: min(188px, calc(100vw - 14px));
+  }
+
+  .feature-nav {
+    width: 100%;
   }
 
   .feature-nav__items {
-    grid-template-columns: 1fr;
     gap: 7px;
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
   }
 
   .feature-nav__item {
-    width: 100%;
+    flex-basis: min(170px, 100%);
+    width: 170px;
+    max-width: 100%;
     height: 84px;
   }
 
   .feature-nav__content strong {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 378px) {
+  .feature-nav-frame,
+  .feature-nav-frame--1,
+  .feature-nav-frame--2,
+  .feature-nav-frame--3 {
+    width: min(188px, calc(100vw - 14px));
+  }
+}
+
+@media (max-width: 532px) {
+  .link-grid--official,
+  .link-grid--creator {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel {
+    min-height: 190px;
+    padding: 28px 12px;
+  }
+
+  .hero-panel__logo img {
+    width: min(100%, 285px);
   }
 }
 
@@ -1202,9 +1223,12 @@ button {
 }
 
 @media (max-width: 1040px) {
-  .xp-layout,
-  .xp-advanced {
+  .xp-layout {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .xp-advanced {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1214,7 +1238,6 @@ button {
   }
 
   .xp-layout,
-  .xp-advanced,
   .xp-fields,
   .xp-results {
     grid-template-columns: 1fr;
