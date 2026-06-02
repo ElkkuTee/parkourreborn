@@ -14,34 +14,38 @@ import { images } from '@/lib/assets';
 
 type FieldProps = {
   label: string;
-  value: number;
+  value: InputValue;
   min?: number;
   max?: number;
   step?: number;
-  onChange: (value: number) => void;
+  onChange: (value: InputValue) => void;
 };
 
+type InputValue = number | string;
+
 type SavedValues = {
-  level?: number;
-  multiplier?: number;
+  level?: InputValue;
+  multiplier?: InputValue;
   vip?: boolean;
-  targetLevel?: number;
-  sessionTargetLevel?: number;
-  averageCombo?: number;
-  startLevel?: number;
-  endLevel?: number;
+  targetLevel?: InputValue;
+  sessionTargetLevel?: InputValue;
+  averageCombo?: InputValue;
+  startLevel?: InputValue;
+  endLevel?: InputValue;
 };
 
 const saveKey = 'xpcalc-values';
 const levelCap = 999;
 
-const num = (value: string) => {
+const num = (value: InputValue, fallback: number) => {
+  if (value === '') return fallback;
   const next = Number(value);
-  return Number.isFinite(next) ? next : 0;
+  return Number.isFinite(next) ? next : fallback;
 };
 
-const calcLevel = (value: number) => Math.min(levelCap, value);
-const calcMultiplier = (value: number) => Math.max(1, value);
+const calcLevel = (value: InputValue) => Math.min(levelCap, Math.max(1, Math.floor(num(value, 1))));
+const calcNumber = (value: InputValue) => num(value, 0);
+const calcMultiplier = (value: InputValue) => Math.max(1, num(value, 1));
 
 const Result = ({ label, value, big = false }: { label: string; value: string; big?: boolean }) => (
   <div className={`xp-result ${big ? 'xp-result--big' : ''}`}>
@@ -53,35 +57,37 @@ const Result = ({ label, value, big = false }: { label: string; value: string; b
 const Field = ({ label, value, min, max, step = 1, onChange }: FieldProps) => (
   <label className="xp-field">
     <span>{label}</span>
-    <input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(num(event.target.value))} />
+    <input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(event.target.value)} />
   </label>
 );
 
 export default function XPCalculator() {
-  const [level, setLevel] = useState(1);
-  const [percent, setPercent] = useState(0);
-  const [multiplier, setMultiplier] = useState(1);
+  const [level, setLevel] = useState<InputValue>(1);
+  const [percent, setPercent] = useState<InputValue>(0);
+  const [multiplier, setMultiplier] = useState<InputValue>(1);
   const [vip, setVip] = useState(false);
-  const [targetLevel, setTargetLevel] = useState(10);
-  const [sessionTargetLevel, setSessionTargetLevel] = useState(10);
-  const [averageCombo, setAverageCombo] = useState(360000);
-  const [startLevel, setStartLevel] = useState(1);
-  const [endLevel, setEndLevel] = useState(50);
+  const [targetLevel, setTargetLevel] = useState<InputValue>(10);
+  const [sessionTargetLevel, setSessionTargetLevel] = useState<InputValue>(10);
+  const [averageCombo, setAverageCombo] = useState<InputValue>(360000);
+  const [startLevel, setStartLevel] = useState<InputValue>(1);
+  const [endLevel, setEndLevel] = useState<InputValue>(50);
   const [loaded, setLoaded] = useState(false);
   const currentCalcLevel = calcLevel(level);
+  const currentCalcPercent = calcNumber(percent);
   const calcXPMultiplier = calcMultiplier(multiplier);
   const goalCalcLevel = calcLevel(targetLevel);
   const sessionGoalCalcLevel = calcLevel(sessionTargetLevel);
   const startCalcLevel = calcLevel(startLevel);
   const endCalcLevel = calcLevel(endLevel);
+  const averageCalcCombo = calcNumber(averageCombo);
 
-  const calc = useMemo(() => calculateProgressBetweenLevels(currentCalcLevel, percent, currentCalcLevel + 1, calcXPMultiplier, vip), [currentCalcLevel, percent, calcXPMultiplier, vip]);
-  const targetXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, percent, goalCalcLevel), [currentCalcLevel, percent, goalCalcLevel]);
+  const calc = useMemo(() => calculateProgressBetweenLevels(currentCalcLevel, currentCalcPercent, currentCalcLevel + 1, calcXPMultiplier, vip), [currentCalcLevel, currentCalcPercent, calcXPMultiplier, vip]);
+  const targetXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, goalCalcLevel), [currentCalcLevel, currentCalcPercent, goalCalcLevel]);
   const targetCombo = useMemo(() => xpToRequiredComboScore(targetXP, calcXPMultiplier, vip), [targetXP, calcXPMultiplier, vip]);
   const levelsRemaining = useMemo(() => Math.max(0, goalCalcLevel - currentCalcLevel), [goalCalcLevel, currentCalcLevel]);
-  const sessionXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, percent, sessionGoalCalcLevel), [currentCalcLevel, percent, sessionGoalCalcLevel]);
+  const sessionXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, sessionGoalCalcLevel), [currentCalcLevel, currentCalcPercent, sessionGoalCalcLevel]);
   const sessionCombo = useMemo(() => xpToRequiredComboScore(sessionXP, calcXPMultiplier, vip), [sessionXP, calcXPMultiplier, vip]);
-  const runsNeeded = useMemo(() => (averageCombo > 0 ? Math.ceil(sessionCombo / averageCombo) : 0), [sessionCombo, averageCombo]);
+  const runsNeeded = useMemo(() => (averageCalcCombo > 0 ? Math.ceil(sessionCombo / averageCalcCombo) : 0), [sessionCombo, averageCalcCombo]);
   const betweenXP = useMemo(() => xpRequiredBetweenLevels(startCalcLevel, endCalcLevel), [startCalcLevel, endCalcLevel]);
 
   useEffect(() => {
@@ -93,14 +99,14 @@ export default function XPCalculator() {
       }
 
       const saved = JSON.parse(raw) as SavedValues;
-      if (typeof saved.level === 'number') setLevel(saved.level);
-      if (typeof saved.multiplier === 'number') setMultiplier(saved.multiplier);
+      if (typeof saved.level === 'number' || typeof saved.level === 'string') setLevel(saved.level);
+      if (typeof saved.multiplier === 'number' || typeof saved.multiplier === 'string') setMultiplier(saved.multiplier);
       if (typeof saved.vip === 'boolean') setVip(saved.vip);
-      if (typeof saved.targetLevel === 'number') setTargetLevel(saved.targetLevel);
-      if (typeof saved.sessionTargetLevel === 'number') setSessionTargetLevel(saved.sessionTargetLevel);
-      if (typeof saved.averageCombo === 'number') setAverageCombo(saved.averageCombo);
-      if (typeof saved.startLevel === 'number') setStartLevel(saved.startLevel);
-      if (typeof saved.endLevel === 'number') setEndLevel(saved.endLevel);
+      if (typeof saved.targetLevel === 'number' || typeof saved.targetLevel === 'string') setTargetLevel(saved.targetLevel);
+      if (typeof saved.sessionTargetLevel === 'number' || typeof saved.sessionTargetLevel === 'string') setSessionTargetLevel(saved.sessionTargetLevel);
+      if (typeof saved.averageCombo === 'number' || typeof saved.averageCombo === 'string') setAverageCombo(saved.averageCombo);
+      if (typeof saved.startLevel === 'number' || typeof saved.startLevel === 'string') setStartLevel(saved.startLevel);
+      if (typeof saved.endLevel === 'number' || typeof saved.endLevel === 'string') setEndLevel(saved.endLevel);
       setLoaded(true);
     } catch {
       setLoaded(true);
