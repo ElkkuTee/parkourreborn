@@ -10,7 +10,7 @@ export const images = {
     icons: '/backgrounds/icons.png',
     tools: {
       bg: '/backgrounds/tools/bg.png',
-      xpcalculator: '/backgrounds/tools/xpcalculator.png',
+      xpcalc: '/backgrounds/tools/xpcalc.png',
       techlist: '/backgrounds/tools/techlist.png',
     },
     games: {

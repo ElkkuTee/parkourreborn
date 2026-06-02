@@ -14,7 +14,7 @@ const features: Feature[] = [
     bg: images.backgrounds.tools.bg,
     items: [
       { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/' },
-      { title: 'XP Calculator', image: images.backgrounds.tools.xpcalculator, href: '/' },
+      { title: 'XP Calculator', image: images.backgrounds.tools.xpcalc, href: '/xpcalc' },
     ],
   },
   {

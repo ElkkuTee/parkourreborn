@@ -27,6 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <div className="hub-bg" aria-hidden="true">
+          <span className="hub-bg__icons" />
+          <span className="hub-bg__shade" />
+        </div>
         <Menu />
         {children}
         <Analytics/>
