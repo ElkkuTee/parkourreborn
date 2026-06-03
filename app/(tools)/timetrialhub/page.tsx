@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ComingSoon from '@/components/coming-soon';
-import PageHero from '@/components/page-hero';
-import { images } from '@/lib/assets';
+import TimeTrialHub from '@/components/tools/timetrialhub';
 
 export const metadata: Metadata = {
   title: 'Time Trial Hub',
-  description: 'Track PARKOUR Reborn time trial routes and records.',
+  description: 'Track Parkour Reborn time trial records and routes.',
 };
 
 export default function Page() {
@@ -14,11 +12,15 @@ export default function Page() {
     <main className="hub-shell min-h-screen overflow-x-hidden">
       <section className="hub-page hub-page--wide">
         <div className="hub-container">
-          <Link className="back-btn" href="/">
-            Back
-          </Link>
-          <PageHero eyebrow="Tools" title="Time Trial Hub" image={images.backgrounds.tools.timetrialhub} />
-          <ComingSoon />
+          <div className="tool-topbar">
+            <Link className="back-btn" href="/">
+              Back
+            </Link>
+            <a className="back-btn" href="https://wasans.tully.sh" target="_blank" rel="noopener noreferrer">
+              Official Scoring Website
+            </a>
+          </div>
+          <TimeTrialHub />
         </div>
       </section>
     </main>

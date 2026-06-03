@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Contributions',
-  description: 'See PARKOUR Reborn community contributions.',
+  description: 'Parkour Reborn Hub contributions.',
 };
 
 export default function Page() {

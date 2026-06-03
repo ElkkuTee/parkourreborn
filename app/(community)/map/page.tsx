@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Map',
-  description: 'View the PARKOUR Reborn world map.',
+  description: 'View the Parkour Reborn map.',
 };
 
 export default function Page() {

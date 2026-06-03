@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Tech List',
-  description: 'Browse PARKOUR Reborn tech and movement info.',
+  description: 'See all Parkour Reborn techs.',
 };
 
 export default function Page() {

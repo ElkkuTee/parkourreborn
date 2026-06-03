@@ -4,7 +4,7 @@ import XPCalculator from '@/components/tools/xpcalc';
 
 export const metadata: Metadata = {
   title: 'XP Calculator',
-  description: 'Calculate PARKOUR Reborn levels, XP, multipliers, and combo score.',
+  description: 'Calculate Parkour Reborn levels, XP, and combo score.',
 };
 
 export default function Page() {

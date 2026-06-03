@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Incremental Parkour',
-  description: 'Play the PARKOUR Reborn incremental game.',
+  description: 'Play Parkour Reborn 2d incremental game.',
 };
 
 export default function Page() {

@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Parkour Guessr',
-  description: 'Play the PARKOUR Reborn location guessing game.',
+  description: 'Play Parkour Reborn geoguessr.',
 };
 
 export default function Page() {

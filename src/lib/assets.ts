@@ -38,6 +38,13 @@ export const images = {
       normal: '/elements/map/normal.jpg',
       clean: '/elements/map/clean.jpg',
     },
+    timetrials: {
+      bronze: '/elements/timetrials/bronze.webp',
+      silver: '/elements/timetrials/silver.webp',
+      gold: '/elements/timetrials/gold.webp',
+      platinum: '/elements/timetrials/platinum.webp',
+      worldrecord: '/elements/timetrials/worldrecord.webp',
+    },
     memes: {
       comingson: '/elements/memes/comingson.webp',
     },

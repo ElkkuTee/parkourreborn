@@ -6,7 +6,7 @@ import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Bag Opening Simulator',
-  description: 'Open PARKOUR Reborn bags in a simulator.',
+  description: 'Parkour Reborn bag opening simulator.',
 };
 
 export default function Page() {
