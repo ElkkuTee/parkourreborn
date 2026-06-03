@@ -38,5 +38,8 @@ export const images = {
       normal: '/elements/map/normal.jpg',
       clean: '/elements/map/clean.jpg',
     },
+    memes: {
+      comingson: '/elements/memes/comingson.webp',
+    },
   },
 } as const;

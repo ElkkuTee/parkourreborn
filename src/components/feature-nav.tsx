@@ -13,18 +13,18 @@ const features: Feature[] = [
     title: 'Tools',
     bg: images.backgrounds.tools.bg,
     items: [
-      { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/' },
+      { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/techlist' },
       { title: 'XP Calculator', image: images.backgrounds.tools.xpcalc, href: '/xpcalc' },
-      { title: 'Time Trial Hub', image: images.backgrounds.tools.timetrialhub, href: '/' },
+      { title: 'Time Trial Hub', image: images.backgrounds.tools.timetrialhub, href: '/timetrialhub' },
     ],
   },
   {
     title: 'Games',
     bg: images.backgrounds.games.bg,
     items: [
-      { title: 'Parkour Guessr', image: images.backgrounds.games.parkourguessr, href: '/' },
-      { title: 'Incremental Parkour', image: images.backgrounds.games.incrementalparkour, href: '/' },
-      { title: 'Bag Opening Simulator', image: images.backgrounds.games.bagopensimulator, href: '/' },
+      { title: 'Parkour Guessr', image: images.backgrounds.games.parkourguessr, href: '/parkourguessr' },
+      { title: 'Incremental Parkour', image: images.backgrounds.games.incrementalparkour, href: '/incrementalparkour' },
+      { title: 'Bag Opening Simulator', image: images.backgrounds.games.bagopensimulator, href: '/bagopensimulator' },
     ],
   },
   {
@@ -32,7 +32,7 @@ const features: Feature[] = [
     bg: images.backgrounds.community.bg,
     items: [
       { title: 'Map', image: images.backgrounds.community.map, href: '/map' },
-      { title: 'Contributions', image: images.backgrounds.community.contributions, href: '/' },
+      { title: 'Contributions', image: images.backgrounds.community.contributions, href: '/contributions' },
     ],
   },
 ];
