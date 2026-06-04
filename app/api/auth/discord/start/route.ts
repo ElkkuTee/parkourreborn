@@ -1,7 +1,6 @@
 import { randomBytes } from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/server/firebase-admin';
-import { verifyBearer } from '@/lib/server/auth';
 
 const maxAge = 10 * 60;
 
@@ -12,15 +11,13 @@ const env = () => {
   return {clientId, redirectUri};
 };
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const token = await verifyBearer(request.headers.get('authorization'));
     const {clientId, redirectUri} = env();
     const state = randomBytes(32).toString('hex');
     const now = Date.now();
 
     await getAdminDb().collection('discordAuthStates').doc(state).set({
-      uid: token.uid,
       createdAt: now,
       expiresAt: now + maxAge * 1000,
     });

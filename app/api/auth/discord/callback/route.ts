@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
 import { FieldValue } from 'firebase-admin/firestore';
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/server/firebase-admin';
+import { getAdminAuth, getAdminDb } from '@/lib/server/firebase-admin';
 
 type DiscordUser = {
   id: string;
@@ -16,6 +17,10 @@ const home = (request: NextRequest, status: string) => {
   url.searchParams.set('discord', status);
   return url;
 };
+
+const maxAge = 5 * 60;
+
+const discordUid = (id: string) => `discord-${id}`;
 
 const env = () => {
   const clientId = process.env.DISCORD_CLIENT_ID;
@@ -54,6 +59,18 @@ async function getDiscordUser(accessToken: string) {
   return response.json() as Promise<DiscordUser>;
 }
 
+async function syncAuthUser(uid: string, user: DiscordUser) {
+  const displayName = user.global_name || user.username;
+  const photoURL = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` : undefined;
+  const data = photoURL ? {displayName, photoURL} : {displayName};
+
+  try {
+    await getAdminAuth().updateUser(uid, data);
+  } catch {
+    await getAdminAuth().createUser({uid, ...data});
+  }
+}
+
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
   const state = request.nextUrl.searchParams.get('state');
@@ -64,9 +81,9 @@ export async function GET(request: NextRequest) {
   const db = getAdminDb();
   const stateRef = db.collection('discordAuthStates').doc(state);
   const stateDoc = await stateRef.get();
-  const stateData = stateDoc.data() as {uid?: string; expiresAt?: number} | undefined;
+  const stateData = stateDoc.data() as {expiresAt?: number} | undefined;
 
-  if (!stateDoc.exists || !stateData?.uid || !stateData.expiresAt || stateData.expiresAt < Date.now()) {
+  if (!stateDoc.exists || !stateData?.expiresAt || stateData.expiresAt < Date.now()) {
     await stateRef.delete().catch(() => {});
     return NextResponse.redirect(home(request, 'expired'));
   }
@@ -75,8 +92,13 @@ export async function GET(request: NextRequest) {
     const token = await exchangeCode(code);
     const user = await getDiscordUser(token.access_token);
     const linkedAt = new Date().toISOString();
+    const uid = discordUid(user.id);
+    const login = randomBytes(32).toString('hex');
+    const now = Date.now();
 
-    await db.collection('users').doc(stateData.uid).set({
+    await syncAuthUser(uid, user);
+
+    await db.collection('users').doc(uid).set({
       discord: {
         id: user.id,
         username: user.username,
@@ -89,10 +111,24 @@ export async function GET(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
 
+    await db.collection('discordLogins').doc(login).set({
+      uid,
+      discordId: user.id,
+      createdAt: now,
+      expiresAt: now + maxAge * 1000,
+    });
+
     await stateRef.delete();
 
     const response = NextResponse.redirect(home(request, 'linked'));
     response.cookies.delete('discord_oauth_state');
+    response.cookies.set('discord_login', login, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge,
+      path: '/',
+    });
     return response;
   } catch {
     await stateRef.delete().catch(() => {});

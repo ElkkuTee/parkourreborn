@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { browserLocalPersistence, onAuthStateChanged, setPersistence, signInAnonymously } from 'firebase/auth';
+import { browserLocalPersistence, onAuthStateChanged, setPersistence, signInWithCustomToken, signOut } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { getClientAuth, hasFirebaseConfig } from '@/lib/firebase';
 import type { DiscordProfile } from '@/lib/discord';
@@ -25,7 +25,7 @@ const authMessage = (error: unknown) => {
 
   const code = String(error.code);
   if (code === 'auth/unauthorized-domain') return 'This domain is not allowed in Firebase Auth yet.';
-  if (code === 'auth/operation-not-allowed') return 'Anonymous login is not enabled in Firebase yet.';
+  if (code === 'auth/operation-not-allowed') return 'Firebase login is not enabled yet.';
   if (code === 'auth/network-request-failed') return 'Network issue. Try again in a bit.';
   return 'Discord login failed. Check Firebase and Discord setup.';
 };
@@ -56,28 +56,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const auth = getClientAuth();
-    setPersistence(auth, browserLocalPersistence).catch(() => setError('Could not save login state.'));
+    let active = true;
+    let stop = () => {};
 
-    return onAuthStateChanged(auth, async (nextUser) => {
-      try {
-        if (!nextUser) {
-          const credential = await signInAnonymously(auth);
-          setUser(credential.user);
-          await loadDiscord(credential.user);
-          return;
+    const watchAuth = () => {
+      stop = onAuthStateChanged(auth, async (nextUser) => {
+        try {
+          if (nextUser?.isAnonymous) {
+            await signOut(auth);
+            setUser(null);
+            setDiscord(null);
+            return;
+          }
+
+          setUser(nextUser);
+
+          if (nextUser) await loadDiscord(nextUser);
+          else setDiscord(null);
+        } catch (nextError) {
+          setError(authMessage(nextError));
+        } finally {
+          setLoading(false);
         }
+      }, (nextError) => {
+        setError(authMessage(nextError));
+        setLoading(false);
+      });
+    };
 
-        await loadDiscord(nextUser);
+    const boot = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+
+        const response = await fetch('/api/auth/discord/session', {method: 'POST'});
+        if (response.ok) {
+          const data = await response.json() as {token: string | null};
+          if (data.token) await signInWithCustomToken(auth, data.token);
+        }
       } catch (nextError) {
         setError(authMessage(nextError));
+      } finally {
+        if (active) watchAuth();
       }
+    };
 
-      setUser(nextUser);
-      setLoading(false);
-    }, (nextError) => {
-      setError(authMessage(nextError));
-      setLoading(false);
-    });
+    boot();
+
+    return () => {
+      active = false;
+      stop();
+    };
   }, []);
 
   const login = async () => {
@@ -92,12 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const current = auth.currentUser ?? (await signInAnonymously(auth)).user;
-      const token = await current.getIdToken();
-      const response = await fetch('/api/auth/discord/start', {
-        method: 'POST',
-        headers: {authorization: `Bearer ${token}`},
-      });
+      const response = await fetch('/api/auth/discord/start', {method: 'POST'});
 
       if (!response.ok) throw new Error('Could not start Discord login');
 
@@ -122,13 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError('');
 
     try {
-      const token = await current.getIdToken();
-      const response = await fetch('/api/auth/me', {
-        method: 'DELETE',
-        headers: {authorization: `Bearer ${token}`},
-      });
-
-      if (!response.ok) throw new Error('Could not log out');
+      await signOut(getClientAuth());
+      setUser(null);
       setDiscord(null);
     } catch (nextError) {
       setError(authMessage(nextError));

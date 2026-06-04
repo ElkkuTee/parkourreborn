@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { images } from '@/lib/assets';
 
 export const metadata: Metadata = { 
-  metadataBase: new URL('https://parkourreborn-new.vercel.app'),
+  metadataBase: new URL('https://www.parkourreborn.com'),
   title: 'Parkour Reborn Hub',
   description: 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.',
   icons: {icon: images.logo.icon},
