@@ -16,14 +16,14 @@ export const images = {
     },
     games: {
       bg: '/backgrounds/games/bg.webp',
-      parkourguessr: '/backgrounds/games/parkourguessr.png',
-      incrementalparkour: '/backgrounds/games/incrementalparkour.png',
-      bagopensimulator: '/backgrounds/games/bagopensimulator.png',
+      parkourguessr: '/backgrounds/games/parkourguessr.webp',
+      incrementalparkour: '/backgrounds/games/incrementalparkour.webp',
+      bagopensimulator: '/backgrounds/games/bagopensimulator.webp',
     },
     community: {
       bg: '/backgrounds/community/bg.webp',
       map: '/backgrounds/community/map.webp',
-      contributions: '/backgrounds/community/contributions.png',
+      contributions: '/backgrounds/community/contributions.webp',
     },
     links: {
       discord: '/backgrounds/links/discord.webp',
