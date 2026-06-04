@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AuthProvider } from '@/components/auth-provider';
 import Menu from '@/components/menu';
 import './globals.css';
 import { Analytics } from "@vercel/analytics/next"
@@ -31,8 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <span className="hub-bg__icons" />
           <span className="hub-bg__shade" />
         </div>
-        <Menu />
-        {children}
+        <AuthProvider>
+          <Menu />
+          {children}
+        </AuthProvider>
         <Analytics/>
       </body>
     </html>

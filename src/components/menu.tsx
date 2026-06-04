@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { images } from '@/lib/assets';
+import MenuAuth from '@/components/menu-auth';
 
 const mainLinks = [
   { name: 'Tech List', href: '/techlist' },
@@ -112,9 +113,7 @@ export default function Menu() {
           ))}
         </nav>
         <div className="side-menu__footer">
-          <button className="side-menu__link side-menu__link--settings" type="button" tabIndex={-1}>
-            Settings
-          </button>
+          <MenuAuth />
         </div>
       </aside>
 
