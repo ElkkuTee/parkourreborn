@@ -24,6 +24,7 @@ export const images = {
       bg: '/backgrounds/community/bg.webp',
       map: '/backgrounds/community/map.webp',
       contributions: '/backgrounds/community/contributions.webp',
+      search: '/backgrounds/community/search.webp',
     },
     links: {
       discord: '/backgrounds/links/discord.webp',
@@ -46,7 +47,8 @@ export const images = {
       worldrecord: '/elements/timetrials/worldrecord.webp',
     },
     memes: {
-      comingson: '/elements/memes/comingson.webp',
+      what: '/elements/memes/what.gif',
+      highbomber: '/elements/memes/highbomber.gif',
     },
   },
 } as const;

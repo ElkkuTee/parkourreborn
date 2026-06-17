@@ -4,7 +4,7 @@ import TimeTrialHub from '@/components/tools/timetrialhub';
 
 export const metadata: Metadata = {
   title: 'Time Trial Hub',
-  description: 'Track Parkour Reborn time trial records and routes.',
+  description: 'Track PARKOUR Reborn time trial records and routes.',
 };
 
 export default function Page() {

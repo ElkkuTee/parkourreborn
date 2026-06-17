@@ -200,7 +200,7 @@ export default function MapViewer({ image, open, onClose }: MapViewerProps) {
         <button type="button" onClick={() => setClampedZoom(zoom / 1.18)}>Zoom Out</button>
         <button type="button" onClick={reset}>Reset</button>
         <span>{Math.round(zoom * 100)}%</span>
-        <button className="map-modal__close" type="button" aria-label="Close map" onClick={onClose}>X</button>
+        <button className="map-modal__close" type="button" aria-label="Close map" onClick={onClose}><span className="tt-close__icon" /></button>
       </div>
       <div
         className="map-modal__stage"
@@ -212,7 +212,7 @@ export default function MapViewer({ image, open, onClose }: MapViewerProps) {
       >
         <img
           src={image}
-          alt="Parkour Reborn world map"
+          alt="PARKOUR Reborn world map"
           draggable={false}
           onLoad={(event) => setNatural({width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight})}
           style={{transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`}}

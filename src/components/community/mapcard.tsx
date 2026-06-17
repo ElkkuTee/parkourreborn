@@ -15,7 +15,7 @@ export default function MapCard({ image }: MapCardProps) {
         <button className="map-card__open" type="button" aria-label="Open fullscreen map" onClick={() => setOpen(true)}>
           Fullscreen
         </button>
-        <img src={image} alt="Parkour Reborn world map" />
+        <img src={image} alt="PARKOUR Reborn world map" />
       </section>
       <MapViewer image={image} open={open} onClose={() => setOpen(false)} />
     </>

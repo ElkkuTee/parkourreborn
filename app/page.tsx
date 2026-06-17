@@ -27,7 +27,7 @@ export default function Home() {
         <div className="hub-container">
           <header className="hero-panel">
             <div className="hero-panel__logo">
-              <Image src={images.logo.hero} alt="Parkour Reborn Hub" width={520} height={240} priority />
+              <Image src={images.logo.hero} alt="PARKOUR Reborn Hub" width={520} height={240} priority />
             </div>
           </header>
           <FeatureNav />

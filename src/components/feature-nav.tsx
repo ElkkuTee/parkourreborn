@@ -33,6 +33,7 @@ const features: Feature[] = [
     items: [
       { title: 'Map', image: images.backgrounds.community.map, href: '/map' },
       { title: 'Contributions', image: images.backgrounds.community.contributions, href: '/contributions' },
+      { title: 'Search', image: images.backgrounds.community.search, href: '/search' },
     ],
   },
 ];

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import XPCalculator from '@/components/tools/xpcalc';
+import CommunitySearch from '@/components/community/search';
+import PageHero from '@/components/page-hero';
+import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
-  title: 'XP Calculator',
-  description: 'Calculate PARKOUR Reborn levels, XP, and combo score.',
+  title: 'Search',
+  description: 'Search for memes, files and other content.',
 };
 
 export default function Page() {
@@ -15,7 +17,8 @@ export default function Page() {
           <Link className="back-btn" href="/">
             Back
           </Link>
-          <XPCalculator />
+          <PageHero eyebrow="Community" title="Search" image={images.backgrounds.community.search} />
+          <CommunitySearch />
         </div>
       </section>
     </main>

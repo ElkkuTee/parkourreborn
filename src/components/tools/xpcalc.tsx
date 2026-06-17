@@ -8,7 +8,7 @@ import {
   xpRemainingToTargetLevel,
   xpRequiredBetweenLevels,
   xpToRequiredComboScore,
-} from '@/lib/xpcalc';
+} from '@/lib/pages/xpcalc';
 import PageHero from '@/components/page-hero';
 import { images } from '@/lib/assets';
 

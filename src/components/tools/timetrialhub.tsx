@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import PageHero from '@/components/page-hero';
 import { images } from '@/lib/assets';
-import { fetchTimeTrials, fetchWorldRecords, trialKey, wrVideoURL } from '@/lib/timetrials';
-import type { TimeTrial, WorldRecord } from '@/lib/timetrials';
-import { cleanTimeInput, formatTime, parseTime } from '@/lib/time';
-import { calculateWasansScore, formatWasansScore } from '@/lib/wasans';
+import { fetchTimeTrials, fetchWorldRecords, trialKey, wrVideoURL } from '@/lib/pages/timetrials';
+import type { TimeTrial, WorldRecord } from '@/lib/pages/timetrials';
+import { cleanTimeInput, formatTime, parseTime } from '@/lib/pages/time';
+import { calculateWasansScore, formatWasansScore } from '@/lib/pages/wasans';
 
 type VideoMode = 'plat1' | 'plat2' | 'wr';
 type Pbs = Record<string, string>;
@@ -94,7 +94,7 @@ function TrialModal({ trial, wr, onClose }: { trial: TimeTrial; wr?: WorldRecord
             <h2>{trial.name}</h2>
             <small>{trial.difficulty}</small>
           </div>
-          <button className="tt-close" type="button" aria-label="Close" onClick={onClose}>X</button>
+          <button className="tt-close" type="button" aria-label="Close" onClick={onClose}><span className="tt-close__icon" /></button>
         </header>
 
         <div className="tt-tabs" role="tablist" aria-label="Route video">

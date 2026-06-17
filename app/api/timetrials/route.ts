@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCollectionDocuments } from '@/lib/server/firebase';
-import type { TimeTrial } from '@/lib/timetrials';
+import type { TimeTrial } from '@/lib/pages/timetrials';
 
 type TrialData = {
   bronzeTime?: string | number;
