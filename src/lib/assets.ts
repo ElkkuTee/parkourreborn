@@ -46,9 +46,9 @@ export const images = {
       platinum: '/elements/timetrials/platinum.webp',
       worldrecord: '/elements/timetrials/worldrecord.webp',
     },
-    memes: {
-      what: '/elements/memes/what.gif',
-      highbomber: '/elements/memes/highbomber.gif',
-    },
+  },
+  memes: {
+    elonstreamsreborn: '/memes/elonstreamsreborn.gif',
+    highbomber: '/memes/highbomber.gif',
   },
 } as const;
