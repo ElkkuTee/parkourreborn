@@ -11,7 +11,7 @@ export default function ComingSoon({ title = 'Coming soon' }: ComingSoonProps) {
       <h2>Release date: Tomorrow</h2>
       <small>twk</small>
       <section className="memes">
-        <img src={images.elements.memes.highbomber} alt="highbomber" width={300} height={300}></img>
+        <img src={images.memes.highbomber} alt="highbomber" width={300} height={300}></img>
       </section>
       <small>For legal reasons, the release date is not actually tomorrow.</small>
     </section>
