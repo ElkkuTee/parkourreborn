@@ -4,6 +4,7 @@ import type { CommunityResource, CommunityResourceType } from '@/lib/pages/searc
 
 type GifData = {
   link?: string;
+  redirect?: string;
 };
 
 type LinkData = {
@@ -36,6 +37,11 @@ function cleanResource(id: string, type: CommunityResourceType, data: GifData | 
     type,
     link,
   };
+
+  if (type === 'gif' && 'redirect' in data) {
+    const redirect = text(data.redirect);
+    if (redirect) resource.redirect = redirect;
+  }
 
   if ('description' in data) {
     const description = text(data.description);

@@ -8,7 +8,7 @@ import MenuAuth from '@/components/menu-auth';
 
 const mainLinks = [
   { name: 'Tech List', href: '/techlist' },
-  { name: 'XP Calculator', href: '/xpcalc' },
+  { name: 'Search', href: '/search' },
   { name: 'Time Trial Hub', href: '/timetrialhub' },
 ];
 

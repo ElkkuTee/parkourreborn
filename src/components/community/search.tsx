@@ -29,6 +29,13 @@ const labels: Record<CommunityResourceType, string> = {
 
 const sortType = {gif: 0, file: 1, link: 2} satisfies Record<CommunityResourceType, number>;
 
+const CopyIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M8 8V5.8C8 4.8 8.8 4 9.8 4h8.4c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H16" />
+    <path d="M5.8 8h8.4c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H5.8c-1 0-1.8-.8-1.8-1.8V9.8C4 8.8 4.8 8 5.8 8z" />
+  </svg>
+);
+
 function safeURL(link: string) {
   try {
     const url = new URL(link);
@@ -38,10 +45,17 @@ function safeURL(link: string) {
   }
 }
 
+async function copyURL(link: string) {
+  try {
+    await navigator.clipboard.writeText(link);
+  } catch {}
+}
+
 function ResourceModal({ item, onClose }: ResourceModalProps) {
   const [mounted, setMounted] = useState(false);
   const action = item.type === 'file' && item.downloadable ? 'Download' : 'Open';
-  const canOpen = safeURL(item.link);
+  const openURL = item.type === 'gif' ? item.redirect || item.link : item.link;
+  const canOpen = safeURL(openURL);
 
   useEffect(() => {
     setMounted(true);
@@ -73,12 +87,19 @@ function ResourceModal({ item, onClose }: ResourceModalProps) {
             <span>{labels[item.type]}</span>
             <h2>{item.name}</h2>
           </div>
-          <button className="tt-close" type="button" aria-label="Close" onClick={onClose}><span className="tt-close__icon" /></button>
+          <div className="search-head-actions">
+            <button className="tt-close" type="button" aria-label="Close" onClick={onClose}><span className="tt-close__icon" /></button>
+            {item.type === 'gif' ? <button className="tt-copy" type="button" aria-label="Copy GIF link" onClick={() => void copyURL(openURL)}><CopyIcon /></button> : null}
+          </div>
         </header>
 
         {item.type === 'gif' ? (
           <div className="search-gif">
-            <img src={item.link} alt={item.name} />
+            {canOpen ? (
+              <a className="search-gif__link" href={openURL} target="_blank" rel="noopener noreferrer">
+                <img src={item.link} alt={item.name} />
+              </a>
+            ) : <img src={item.link} alt={item.name} />}
           </div>
         ) : (
           <div className="search-info">

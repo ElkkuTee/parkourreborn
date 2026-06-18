@@ -5,6 +5,7 @@ export type CommunityResource = {
   name: string;
   type: CommunityResourceType;
   link: string;
+  redirect?: string;
   description?: string;
   downloadable?: boolean;
 };
