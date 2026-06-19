@@ -49,6 +49,5 @@ export const images = {
   },
   memes: {
     elonstreamsreborn: '/memes/elonstreamsreborn.gif',
-    highbomber: '/memes/highbomber.gif',
   },
 } as const;
