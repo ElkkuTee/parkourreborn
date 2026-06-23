@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import PageHero from '@/components/page-hero';
 import { images } from '@/lib/assets';
 import { fetchTimeTrials, fetchWorldRecords, trialKey, wrVideoURL } from '@/lib/pages/timetrials';
@@ -39,6 +40,8 @@ function invalidTime(trial: TimeTrial, value: string) {
 }
 
 const isTimeCell = (target: EventTarget | null) => target instanceof HTMLElement && Boolean(target.closest('.tt-time'));
+
+const rowSkeletons = Array.from({length: 24});
 
 function EmbedVideo({ url }: { url: string }) {
   if (!url) return <div className="tt-empty">No video yet</div>;
@@ -126,6 +129,21 @@ function TrialModal({ trial, wr, onClose }: { trial: TimeTrial; wr?: WorldRecord
   ), document.body);
 }
 
+function TrialRowsSkeleton() {
+  return (
+    <>
+      {rowSkeletons.map((_, index) => (
+        <div className="tt-row tt-row--skeleton" key={index} aria-hidden="true">
+          <Skeleton className="tt-skeleton-cell tt-skeleton-cell--district" />
+          <Skeleton className="tt-skeleton-cell tt-skeleton-cell--name" />
+          <Skeleton className="tt-skeleton-cell tt-skeleton-cell--input" />
+          <Skeleton className="tt-skeleton-cell tt-skeleton-cell--score" />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export default function TimeTrialHub() {
   const [trials, setTrials] = useState<TimeTrial[]>([]);
   const [records, setRecords] = useState<Record<string, WorldRecord>>({});
@@ -177,14 +195,14 @@ export default function TimeTrialHub() {
       <section className="tt-summary">
         <div className="xp-result xp-result--big tt-average">
           <span>Average Wasans score</span>
-          <strong>{formatWasansScore(averageScore)}</strong>
+          {recordsLoading ? <Skeleton className="tt-average-skeleton" /> : <strong>{formatWasansScore(averageScore)}</strong>}
         </div>
       </section>
 
       {recordsError ? <div className="tt-note">{recordsError}</div> : null}
       {trialsError ? <div className="tt-note tt-note--bad">{trialsError}</div> : null}
 
-      <section className="tt-panel">
+      <section className="tt-panel" aria-busy={trialsLoading || recordsLoading}>
         <div className="tt-table">
           <div className="tt-row tt-row--head">
             <span>District</span>
@@ -193,7 +211,9 @@ export default function TimeTrialHub() {
             <span>Score</span>
           </div>
 
-          {trialsLoading ? <div className="tt-state">Loading trials...</div> : null}
+          {trialsLoading ? <ScreenReaderLoading>Loading trials...</ScreenReaderLoading> : null}
+          {recordsLoading ? <ScreenReaderLoading>Loading world records...</ScreenReaderLoading> : null}
+          {trialsLoading ? <TrialRowsSkeleton /> : null}
           {!trialsLoading && !trials.length && !trialsError ? <div className="tt-state">No trials found yet.</div> : null}
 
           {trials.map((trial) => {
@@ -230,7 +250,7 @@ export default function TimeTrialHub() {
                   />
                   {invalid ? <small>Invalid</small> : null}
                 </label>
-                <span className="tt-score" data-label="Score">{waitingForWr ? '...' : formatWasansScore(score)}</span>
+                <span className="tt-score" data-label="Score">{waitingForWr ? <Skeleton className="tt-score-skeleton" /> : formatWasansScore(score)}</span>
               </button>
             );
           })}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/components/auth-provider';
+import { ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import { discordAvatar } from '@/lib/discord';
 
 type AccountModalProps = {
@@ -16,6 +17,21 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'account', label: 'Account' },
   { id: 'games', label: 'Games' },
 ];
+
+function AccountSkeleton() {
+  return (
+    <>
+      <div className="account-card account-card--skeleton" aria-hidden="true">
+        <Skeleton className="account-avatar-skeleton" />
+        <span>
+          <Skeleton className="account-line account-line--small" />
+          <Skeleton className="account-line account-line--name" />
+        </span>
+      </div>
+      <Skeleton className="account-action-skeleton" />
+    </>
+  );
+}
 
 export default function AccountModal({ onClose }: AccountModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -66,8 +82,10 @@ export default function AccountModal({ onClose }: AccountModalProps) {
         </div>
 
         {tab === 'account' ? (
-          <div className="account-panel">
-            {loading ? <span className="account-status">Checking login...</span> : null}
+          <div className="account-panel" aria-busy={loading || busy}>
+            {loading ? <ScreenReaderLoading>Checking login...</ScreenReaderLoading> : null}
+            {busy ? <ScreenReaderLoading>Updating account...</ScreenReaderLoading> : null}
+            {loading ? <AccountSkeleton /> : null}
 
             {!loading && discord ? (
               <>
@@ -80,7 +98,7 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                 </div>
                 {error ? <span className="account-error">{error}</span> : null}
                 <button className="account-action" type="button" disabled={busy} onClick={logout}>
-                  {busy ? 'Logging out...' : 'Log out'}
+                  Log out
                 </button>
               </>
             ) : null}
@@ -92,7 +110,7 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                 </div>
                 {error ? <span className="account-error">{error}</span> : null}
                 <button className="account-action" type="button" disabled={busy} onClick={login}>
-                  {busy ? 'Opening Discord...' : 'Log in with Discord'}
+                  Log in with Discord
                 </button>
               </>
             ) : null}

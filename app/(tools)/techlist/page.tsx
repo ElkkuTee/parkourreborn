@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ComingSoon from '@/components/coming-soon';
 import PageHero from '@/components/page-hero';
+import TechList from '@/components/tools/techlist';
 import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
@@ -17,8 +17,8 @@ export default function Page() {
           <Link className="back-btn" href="/">
             Back
           </Link>
-          <PageHero eyebrow="Tools" title="Tech List" image={images.backgrounds.tools.techlist} />
-          <ComingSoon />
+          <PageHero eyebrow="Tool" title="Tech List" image={images.backgrounds.tools.techlist} />
+          <TechList />
         </div>
       </section>
     </main>
