@@ -26,7 +26,7 @@ export async function POST() {
     url.searchParams.set('client_id', clientId);
     url.searchParams.set('redirect_uri', redirectUri);
     url.searchParams.set('response_type', 'code');
-    url.searchParams.set('scope', 'identify email');
+    url.searchParams.set('scope', 'identify');
     url.searchParams.set('state', state);
 
     const response = NextResponse.json({url: url.toString()});

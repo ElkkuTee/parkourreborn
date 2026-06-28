@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/server/firebase-admin';
 import type { CommunityResource, CommunityResourceType } from '@/lib/pages/search';
+import { cleanUrl } from '@/lib/url';
 
 type GifData = {
   link?: string;
@@ -28,7 +29,7 @@ async function getDocs<T>(name: string) {
 }
 
 function cleanResource(id: string, type: CommunityResourceType, data: GifData | LinkData | FileData): CommunityResource | null {
-  const link = text(data.link);
+  const link = cleanUrl(data.link);
   if (!id || !link) return null;
 
   const resource: CommunityResource = {
@@ -39,7 +40,7 @@ function cleanResource(id: string, type: CommunityResourceType, data: GifData | 
   };
 
   if (type === 'gif' && 'redirect' in data) {
-    const redirect = text(data.redirect);
+    const redirect = cleanUrl(data.redirect);
     if (redirect) resource.redirect = redirect;
   }
 

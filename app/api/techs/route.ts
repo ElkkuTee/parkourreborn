@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/server/firebase-admin';
 import type { MovementEntry, MovementKind } from '@/lib/pages/techlist';
+import { cleanUrl } from '@/lib/url';
 
 type MovementData = {
   Aliases?: unknown;
@@ -11,6 +12,7 @@ type MovementData = {
 };
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const kinds = new Set<MovementKind>(['tech', 'concept', 'basic']);
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value).trim());
@@ -27,8 +29,8 @@ function cleanEntry(id: string, data: MovementData): MovementEntry {
     kind: cleanKind(data.Kind),
     aliases: list(data.Aliases),
     steps: list(data.Steps),
-    videoUrl: text(data.VideoUrl),
-    tutorialUrl: text(data.TutorialUrl),
+    videoUrl: cleanUrl(data.VideoUrl),
+    tutorialUrl: cleanUrl(data.TutorialUrl),
   };
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCollectionDocuments } from '@/lib/server/firebase';
 import type { TimeTrial } from '@/lib/pages/timetrials';
+import { cleanUrl } from '@/lib/url';
 
 type TrialData = {
   bronzeTime?: string | number;
@@ -29,8 +30,8 @@ function cleanTrial(id: string, data: TrialData): TimeTrial {
     silverTime: text(data.silverTime),
     goldTime: text(data.goldTime),
     platinumTime: text(data.platinumTime),
-    videoURL: text(data.videoURL),
-    videoURL2: text(data.videoURL2),
+    videoURL: cleanUrl(data.videoURL),
+    videoURL2: cleanUrl(data.videoURL2),
     difficulty: text(data.difficulty) || 'Unknown',
     district: text(data.district) || 'Unknown',
     sorting: sortNum(data.sorting),

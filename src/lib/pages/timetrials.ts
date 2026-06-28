@@ -1,3 +1,5 @@
+import { cleanPathPart } from '@/lib/url';
+
 export type TimeTrial = {
   name: string;
   bronzeTime: string;
@@ -32,7 +34,10 @@ type WrResponse = {
 };
 
 export const trialKey = (name: string) => name.trim().toLowerCase();
-export const wrVideoURL = (submissionUuid: string) => submissionUuid ? `https://assets.wasans.tully.sh/scores/${submissionUuid}.mp4` : '';
+export const wrVideoURL = (submissionUuid: string) => {
+  const id = cleanPathPart(submissionUuid);
+  return id ? `https://assets.wasans.tully.sh/scores/${id}.mp4` : '';
+};
 
 export async function fetchTimeTrials(): Promise<TimeTrial[]> {
   const response = await fetch('/api/timetrials');

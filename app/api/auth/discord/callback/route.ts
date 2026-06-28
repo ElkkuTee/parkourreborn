@@ -9,7 +9,6 @@ type DiscordUser = {
   global_name?: string | null;
   avatar?: string | null;
   discriminator?: string | null;
-  email?: string | null;
 };
 
 const home = (request: NextRequest, status: string) => {
@@ -105,7 +104,7 @@ export async function GET(request: NextRequest) {
         globalName: user.global_name ?? null,
         avatar: user.avatar ?? null,
         discriminator: user.discriminator ?? null,
-        email: user.email ?? null,
+        email: null,
         linkedAt,
       },
       updatedAt: FieldValue.serverTimestamp(),

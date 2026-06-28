@@ -143,7 +143,7 @@ button {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  filter: brightness(1.1); 
+  filter: brightness(1.1);
   background:
     linear-gradient(180deg, rgba(5, 8, 13, 0.18), rgba(5, 8, 13, 0.94) 64rem),
     url('/backgrounds/header.webp') center top / cover no-repeat,
@@ -157,7 +157,7 @@ button {
   background-size: 390px auto;
   background-repeat: repeat;
   background-position: 0 0;
-  filter: brightness(1.1); 
+  filter: brightness(1.1);
   opacity: 0.55;
 
   mask-image: linear-gradient(180deg, transparent 0%, transparent 1%, black 15%, black 100%);
@@ -982,18 +982,7 @@ button {
   .feature-nav__content strong {
     font-size: 12px;
   }
-}
 
-@media (max-width: 378px) {
-  .feature-nav-frame,
-  .feature-nav-frame--1,
-  .feature-nav-frame--2,
-  .feature-nav-frame--3 {
-    width: min(188px, calc(100vw - 14px));
-  }
-}
-
-@media (max-width: 532px) {
   .link-grid--official,
   .link-grid--creator {
     grid-template-columns: 1fr;
@@ -1006,6 +995,15 @@ button {
 
   .hero-panel__logo img {
     width: min(100%, 285px);
+  }
+}
+
+@media (max-width: 378px) {
+  .feature-nav-frame,
+  .feature-nav-frame--1,
+  .feature-nav-frame--2,
+  .feature-nav-frame--3 {
+    width: min(188px, calc(100vw - 14px));
   }
 }
 
@@ -1380,10 +1378,7 @@ button {
   text-align: center;
 }
 
-.tt-average span {
-  text-align: center;
-}
-
+.tt-average span,
 .tt-average strong {
   text-align: center;
 }
@@ -1562,16 +1557,7 @@ button {
   height: 42px;
 }
 
-.tt-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  overflow-y: auto;
-}
-
+.tt-modal,
 .account-modal {
   position: fixed;
   inset: 0;
@@ -1586,8 +1572,7 @@ button {
   position: absolute;
   inset: 0;
   border: 0;
-  background:
-    rgba(2, 4, 8, 0.84);
+  background: rgba(2, 4, 8, 0.84);
   cursor: pointer;
 }
 
@@ -1655,21 +1640,7 @@ button {
   font-weight: 700;
 }
 
-.tt-close {
-  display: grid;
-  flex: 0 0 auto;
-  width: 38px;
-  min-height: 38px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(210, 225, 235, 0.12);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.025);
-  color: var(--hub-muted);
-  cursor: pointer;
-  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
-}
-
+.tt-close,
 .tt-copy {
   display: grid;
   flex: 0 0 auto;
@@ -2293,13 +2264,15 @@ button {
   color: rgba(168, 180, 192, 0.54);
 }
 
-.search-results {
+.search-results,
+.tech-results {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.search-results > .tt-state {
+.search-results > .tt-state,
+.tech-results > .tt-state {
   grid-column: 1 / -1;
 }
 
@@ -2324,7 +2297,9 @@ button {
 }
 
 .search-card:hover,
-.search-card:focus-visible {
+.search-card:focus-visible,
+.tech-card:hover,
+.tech-card:focus-visible {
   border-color: rgba(54, 185, 236, 0.42);
   background:
     linear-gradient(180deg, rgba(54, 185, 236, 0.075), rgba(9, 12, 17, 0.74)),
@@ -2332,7 +2307,8 @@ button {
   transform: translateY(-1px);
 }
 
-.search-card:focus-visible {
+.search-card:focus-visible,
+.tech-card:focus-visible {
   outline: 2px solid rgba(54, 185, 236, 0.68);
   outline-offset: 3px;
 }
@@ -2567,16 +2543,6 @@ button {
   color: var(--hub-text);
 }
 
-.tech-results {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.tech-results > .tt-state {
-  grid-column: 1 / -1;
-}
-
 .tech-card {
   display: grid;
   align-content: start;
@@ -2596,20 +2562,6 @@ button {
     inset 0 1px 0 rgba(255, 255, 255, 0.035),
     0 10px 24px rgba(0, 0, 0, 0.18);
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
-}
-
-.tech-card:hover,
-.tech-card:focus-visible {
-  border-color: rgba(54, 185, 236, 0.42);
-  background:
-    linear-gradient(180deg, rgba(54, 185, 236, 0.075), rgba(9, 12, 17, 0.74)),
-    rgba(255, 255, 255, 0.02);
-  transform: translateY(-1px);
-}
-
-.tech-card:focus-visible {
-  outline: 2px solid rgba(54, 185, 236, 0.68);
-  outline-offset: 3px;
 }
 
 .tech-card__preview {
