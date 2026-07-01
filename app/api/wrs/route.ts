@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const wrsURL = 'https://wasans.tully.sh/api/wrs';
+const wrsURL = 'https://wasans.tully.sh/v1/records/world';
 
 export const dynamic = 'force-dynamic';
 
