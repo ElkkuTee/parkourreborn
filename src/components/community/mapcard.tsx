@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import MapViewer from '@/components/community/mapview';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 type MapCardProps = {
   image: string;
@@ -11,12 +13,12 @@ export default function MapCard({ image }: MapCardProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <section className="map-card">
-        <button className="map-card__open" type="button" aria-label="Open fullscreen map" onClick={() => setOpen(true)}>
+      <Card className="map-card">
+        <Button className="map-card__open" type="button" aria-label="Open fullscreen map" onClick={() => setOpen(true)}>
           Fullscreen
-        </button>
+        </Button>
         <img src={image} alt="PARKOUR Reborn world map" />
-      </section>
+      </Card>
       <MapViewer image={image} open={open} onClose={() => setOpen(false)} />
     </>
   );

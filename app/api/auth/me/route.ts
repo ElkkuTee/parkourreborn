@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
     const token = await verifyBearer(request.headers.get('authorization'));
     const doc = await getAdminDb().collection('users').doc(token.uid).get();
     const data = doc.data();
-    return NextResponse.json({discord: data?.discord ?? null});
+    return NextResponse.json({ discord: data?.discord ?? null });
   } catch {
-    return NextResponse.json({error: 'Unauthorized'}, {status: 401});
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
 
@@ -20,10 +20,10 @@ export async function DELETE(request: NextRequest) {
     await getAdminDb().collection('users').doc(token.uid).set({
       discord: FieldValue.delete(),
       updatedAt: FieldValue.serverTimestamp(),
-    }, {merge: true});
+    }, { merge: true });
 
-    return NextResponse.json({ok: true});
+    return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({error: 'Unauthorized'}, {status: 401});
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }

@@ -62,7 +62,7 @@ function rankEntry(entry: MovementEntry, search: string): SearchResult | null {
   if (!search) return {entry, matchedAlias: '', score: 100};
 
   const name = key(entry.name);
-  const aliases = entry.aliases.map((alias) => ({label: alias, value: key(alias)}));
+  const aliases = entry.aliases.map((alias) => ({ label: alias, value: key(alias) }));
   const steps = stepMatch(entry, search);
   const kind = kindText(entry).toLowerCase().includes(search);
   const alias = aliasMatch(entry, search);

@@ -1,4 +1,9 @@
-type WasansInput = {playerTime: number; bronzeTime: number; platinumTime: number; worldRecordTime: number;};
+type WasansInput = {
+  playerTime: number;
+  bronzeTime: number;
+  platinumTime: number;
+  worldRecordTime: number;
+};
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 

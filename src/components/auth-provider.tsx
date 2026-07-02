@@ -40,11 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadDiscord = async (nextUser: User) => {
     const token = await nextUser.getIdToken();
     const response = await fetch('/api/auth/me', {
-      headers: {authorization: `Bearer ${token}`},
+      headers: { authorization: `Bearer ${token}` },
     });
 
     if (!response.ok) throw new Error('Could not load Discord profile');
-    const data = await response.json() as {discord: DiscordProfile | null};
+    const data = await response.json() as { discord: DiscordProfile | null };
     setDiscord(data.discord);
   };
 
@@ -88,9 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await setPersistence(auth, browserLocalPersistence);
 
-        const response = await fetch('/api/auth/discord/session', {method: 'POST'});
+        const response = await fetch('/api/auth/discord/session', { method: 'POST' });
         if (response.ok) {
-          const data = await response.json() as {token: string | null};
+          const data = await response.json() as { token: string | null };
           if (data.token) await signInWithCustomToken(auth, data.token);
         }
       } catch (nextError) {
@@ -120,11 +120,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const response = await fetch('/api/auth/discord/start', {method: 'POST'});
+      const response = await fetch('/api/auth/discord/start', { method: 'POST' });
 
       if (!response.ok) throw new Error('Could not start Discord login');
 
-      const data = await response.json() as {url: string};
+      const data = await response.json() as { url: string };
       window.location.href = data.url;
     } catch (nextError) {
       setError(authMessage(nextError));

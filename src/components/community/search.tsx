@@ -1,8 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { CardSkeleton, ScreenReaderLoading, Skeleton } from '@/components/skeleton';
+import { Button } from '@/components/ui/button';
+import { DialogClose, DialogTitle } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { HubDialog, HubDialogContent } from '@/components/ui/hub-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { fetchCommunityResources } from '@/lib/pages/search';
 import type { CommunityResource, CommunityResourceType } from '@/lib/pages/search';
 import { useProgressiveList } from '@/lib/use-progressive-list';
@@ -18,9 +28,9 @@ type ResourceModalProps = {
 };
 
 const typeOptions: TypeOption[] = [
-  {id: 'gif', label: 'GIFs'},
-  {id: 'file', label: 'Files'},
-  {id: 'link', label: 'Links'},
+  { id: 'gif', label: 'GIFs' },
+  { id: 'file', label: 'Files' },
+  { id: 'link', label: 'Links' },
 ];
 
 const labels: Record<CommunityResourceType, string> = {
@@ -29,7 +39,7 @@ const labels: Record<CommunityResourceType, string> = {
   link: 'Link',
 };
 
-const sortType = {gif: 0, file: 1, link: 2} satisfies Record<CommunityResourceType, number>;
+const sortType = { gif: 0, file: 1, link: 2 } satisfies Record<CommunityResourceType, number>;
 
 const CopyIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -38,7 +48,7 @@ const CopyIcon = () => (
   </svg>
 );
 
-const skeletons = Array.from({length: 18});
+const skeletons = Array.from({ length: 18 });
 
 function safeURL(link: string) {
   try {
@@ -56,44 +66,41 @@ async function copyURL(link: string) {
 }
 
 function ResourceModal({ item, onClose }: ResourceModalProps) {
-  const [mounted, setMounted] = useState(false);
   const action = item.type === 'file' && item.downloadable ? 'Download' : 'Open';
   const openURL = item.type === 'gif' ? item.redirect || item.link : item.link;
   const canOpen = safeURL(openURL);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', close);
 
     return () => {
       document.body.style.overflow = overflow;
-      document.removeEventListener('keydown', close);
     };
-  }, [onClose]);
+  }, []);
 
-  if (!mounted) return null;
-
-  return createPortal((
-    <div className="tt-modal search-modal" role="dialog" aria-modal="true" aria-label={item.name}>
-      <button className="tt-scrim" type="button" aria-label="Close" onClick={onClose} />
-      <section className={`tt-dialog search-dialog search-dialog--${item.type}`}>
+  return (
+    <HubDialog onOpenChange={(next) => {
+      if (!next) onClose();
+    }}>
+      <HubDialogContent className={`tt-dialog search-dialog search-dialog--${item.type}`} aria-label={item.name}>
         <header className="tt-dialog__head">
           <div>
             <span>{labels[item.type]}</span>
-            <h2>{item.name}</h2>
+            <DialogTitle asChild><h2>{item.name}</h2></DialogTitle>
           </div>
           <div className="search-head-actions">
-            <button className="tt-close" type="button" aria-label="Close" onClick={onClose}><span className="tt-close__icon" /></button>
-            {item.type === 'gif' ? <button className="tt-copy" type="button" aria-label="Copy GIF link" onClick={() => void copyURL(openURL)}><CopyIcon /></button> : null}
+            <DialogClose asChild>
+              <Button className="tt-close" type="button" aria-label="Close"><span className="tt-close__icon" /></Button>
+            </DialogClose>
+            {item.type === 'gif' ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button className="tt-copy" type="button" aria-label="Copy GIF link" onClick={() => void copyURL(openURL)}><CopyIcon /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy GIF link</TooltipContent>
+              </Tooltip>
+            ) : null}
           </div>
         </header>
 
@@ -110,22 +117,24 @@ function ResourceModal({ item, onClose }: ResourceModalProps) {
             {item.description ? <p>{item.description}</p> : <p>No description yet.</p>}
             {canOpen ? <a className="search-url" href={item.link} target="_blank" rel="noopener noreferrer">{item.link}</a> : <span className="search-url">Link looks broken.</span>}
             {canOpen ? (
-              <a className="account-action search-action" href={item.link} target="_blank" rel="noopener noreferrer" download={item.type === 'file' && item.downloadable ? '' : undefined}>
-                {action}
-              </a>
+              <Button asChild className="account-action search-action">
+                <a href={item.link} target="_blank" rel="noopener noreferrer" download={item.type === 'file' && item.downloadable ? '' : undefined}>
+                  {action}
+                </a>
+              </Button>
             ) : null}
           </div>
         )}
-      </section>
-    </div>
-  ), document.body);
+      </HubDialogContent>
+    </HubDialog>
+  );
 }
 
 function ResourceCard({ item, onSelect }: { item: CommunityResource; onSelect: (item: CommunityResource) => void }) {
   const [loaded, setLoaded] = useState(item.type !== 'gif');
 
   return (
-    <button className={`search-card search-card--${item.type}`} type="button" onClick={() => onSelect(item)}>
+    <Button className={`search-card search-card--${item.type}`} type="button" onClick={() => onSelect(item)}>
       {item.type === 'gif' ? (
         <span className={`search-card__preview${loaded ? ' is-loaded' : ''}`}>
           {!loaded ? <Skeleton className="card-media-skeleton" /> : null}
@@ -136,7 +145,7 @@ function ResourceCard({ item, onSelect }: { item: CommunityResource; onSelect: (
         <strong>{item.name}</strong>
         {item.description ? <span>{item.description}</span> : null}
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -148,7 +157,6 @@ export default function CommunitySearch() {
   const [selected, setSelected] = useState<CommunityResource | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const typeRef = useRef<HTMLDivElement>(null);
   const activeType = typeOptions.find((option) => option.id === type) ?? typeOptions[0];
 
   useEffect(() => {
@@ -157,27 +165,6 @@ export default function CommunitySearch() {
       .catch(() => setError('Community stuff is unavailable right now.'))
       .finally(() => setLoading(false));
   }, []);
-
-  useEffect(() => {
-    if (!typeOpen) return;
-
-    const close = (event: MouseEvent) => {
-      if (typeRef.current?.contains(event.target as Node)) return;
-      setTypeOpen(false);
-    };
-
-    const key = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setTypeOpen(false);
-    };
-
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', key);
-
-    return () => {
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('keydown', key);
-    };
-  }, [typeOpen]);
 
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -200,31 +187,32 @@ export default function CommunitySearch() {
           <input value={query} placeholder="Search..." onChange={(event) => setQuery(event.target.value)} />
         </label>
 
-        <div className={`search-select${typeOpen ? ' is-open' : ''}`} ref={typeRef}>
-          <span id="search-type-label">Type</span>
-          <button className="search-select__button" type="button" aria-haspopup="listbox" aria-expanded={typeOpen} aria-labelledby="search-type-label search-type-value" onClick={() => setTypeOpen((open) => !open)}>
-            <strong id="search-type-value">{activeType.label}</strong>
-          </button>
-          {typeOpen ? (
-            <div className="search-select__menu" role="listbox" aria-labelledby="search-type-label">
-              {typeOptions.map((option) => (
-                <button
-                  className={option.id === type ? 'is-on' : ''}
-                  type="button"
-                  role="option"
-                  aria-selected={option.id === type}
-                  key={option.id}
-                  onClick={() => {
-                    setType(option.id);
-                    setTypeOpen(false);
-                  }}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <DropdownMenu open={typeOpen} onOpenChange={setTypeOpen}>
+          <div className={`search-select${typeOpen ? ' is-open' : ''}`}>
+            <span id="search-type-label">Type</span>
+            <DropdownMenuTrigger asChild>
+              <Button className="search-select__button" type="button" aria-haspopup="listbox" aria-expanded={typeOpen} aria-labelledby="search-type-label search-type-value">
+                <strong id="search-type-value">{activeType.label}</strong>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="search-select__menu" sideOffset={7} align="start" aria-labelledby="search-type-label" style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
+              <DropdownMenuRadioGroup value={type} onValueChange={(value) => {
+                setType(value as CommunityResourceType);
+                setTypeOpen(false);
+              }}>
+                {typeOptions.map((option) => (
+                  <DropdownMenuRadioItem
+                    className={option.id === type ? 'is-on' : ''}
+                    value={option.id}
+                    key={option.id}
+                  >
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </div>
+        </DropdownMenu>
       </section>
 
       {error ? <div className="tt-note tt-note--bad">{error}</div> : null}

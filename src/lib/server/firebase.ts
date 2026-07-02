@@ -2,15 +2,13 @@ import 'server-only';
 
 import { initializeApp, getApps } from 'firebase/app';
 import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
-import { collection, getDocs, getFirestore, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, getFirestore } from 'firebase/firestore';
 import type { DocumentData, Firestore, QueryDocumentSnapshot } from 'firebase/firestore';
 
 export type FirestoreDocument<T = DocumentData> = {
   id: string;
   data: T;
 };
-
-type OrderDirection = 'asc' | 'desc';
 
 const env = (name: string) => process.env[name] || process.env[`NEXT_PUBLIC_${name}`] || '';
 
@@ -37,15 +35,10 @@ export function getDb(): Firestore {
 }
 
 export function mapFirestoreDocument<T = DocumentData>(doc: QueryDocumentSnapshot<DocumentData>): FirestoreDocument<T> {
-  return {id: doc.id, data: doc.data() as T};
+  return { id: doc.id, data: doc.data() as T };
 }
 
 export async function getCollectionDocuments<T = DocumentData>(name: string): Promise<FirestoreDocument<T>[]> {
   const snapshot = await getDocs(collection(getDb(), name));
-  return snapshot.docs.map((doc) => mapFirestoreDocument<T>(doc));
-}
-
-export async function getOrderedCollectionDocuments<T = DocumentData>(name: string, field: string, direction: OrderDirection = 'asc'): Promise<FirestoreDocument<T>[]> {
-  const snapshot = await getDocs(query(collection(getDb(), name), orderBy(field, direction)));
   return snapshot.docs.map((doc) => mapFirestoreDocument<T>(doc));
 }

@@ -43,7 +43,7 @@ export function useProgressiveList<T>(items: T[], resetKey: string, initialVisib
         setRevealing(false);
         timer.current = null;
       }, 160);
-    }, {rootMargin: '420px 0px'});
+    }, { rootMargin: '420px 0px' });
 
     observer.observe(node);
     return () => observer.disconnect();

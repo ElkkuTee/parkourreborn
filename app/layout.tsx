@@ -1,25 +1,25 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/components/auth-provider';
 import Menu from '@/components/menu';
-import './globals.css';
-import { Analytics } from "@vercel/analytics/next"
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { images } from '@/lib/assets';
+import './globals.css';
 
 const site = 'https://www.parkourreborn.com';
 const description = 'A hub for PARKOUR Reborn links, tools, games, and community stuff. Everything useful is kept in one spot.';
 
-export const metadata: Metadata = { 
+export const metadata: Metadata = {
   metadataBase: new URL(site),
-  applicationName: 'PARKOUR Reborn Hub',
+  applicationName: 'Parkour Reborn Hub',
   title: {
-    default: 'PARKOUR Reborn Hub',
+    default: 'Parkour Reborn Hub',
     template: '%s | PR Hub',
   },
   description,
   keywords: [
     'PARKOUR Reborn',
-    'PARKOUR Reborn',
-    'PARKOUR Reborn Hub',
+    'Parkour Reborn Hub',
     'Roblox PARKOUR Reborn',
     'PARKOUR Reborn tools',
     'PARKOUR Reborn map',
@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     'PR Hub',
     'xp calculator',
   ],
-  authors: [{name: 'Elkku'}],
-  creator: 'Elkku',
-  publisher: 'PARKOUR Reborn Hub',
+  authors: [{ name: 'ElkkuT' }],
+  creator: 'ElkkuT',
+  publisher: 'Parkour Reborn Hub',
   category: 'gaming',
-  alternates: {canonical: '/'},
+  alternates: { canonical: '/' },
   robots: {
     index: true,
     follow: true,
@@ -48,19 +48,19 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  icons: {icon: images.logo.icon},
+  icons: { icon: images.logo.icon },
   openGraph: {
     type: 'website',
     url: '/',
     locale: 'en_US',
     siteName: 'PARKOUR Reborn',
-    title: 'PARKOUR Reborn Hub',
+    title: 'Parkour Reborn Hub',
     description,
-    images: [{url: images.logo.og, width: 760, height: 399, alt: 'PARKOUR Reborn'}],
+    images: [{ url: images.logo.og, width: 760, height: 399, alt: 'PARKOUR Reborn' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PARKOUR Reborn Hub',
+    title: 'Parkour Reborn Hub',
     description,
     images: [images.logo.og],
   },
@@ -75,10 +75,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <span className="hub-bg__shade" />
         </div>
         <AuthProvider>
-          <Menu />
-          {children}
+          <TooltipProvider>
+            <Menu />
+            {children}
+          </TooltipProvider>
         </AuthProvider>
-        <Analytics/>
+        <Analytics />
       </body>
     </html>
   );

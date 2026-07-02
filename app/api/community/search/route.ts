@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/server/firebase-admin';
 import type { CommunityResource, CommunityResourceType } from '@/lib/pages/search';
+import { getAdminDb } from '@/lib/server/firebase-admin';
 import { cleanUrl } from '@/lib/url';
 
 type GifData = {
@@ -22,10 +22,11 @@ type FileData = {
 export const dynamic = 'force-dynamic';
 
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value).trim());
+const sortType = { gif: 0, file: 1, link: 2 } satisfies Record<CommunityResourceType, number>;
 
 async function getDocs<T>(name: string) {
   const snapshot = await getAdminDb().collection(name).get();
-  return snapshot.docs.map((doc) => ({id: doc.id, data: doc.data() as T}));
+  return snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as T }));
 }
 
 function cleanResource(id: string, type: CommunityResourceType, data: GifData | LinkData | FileData): CommunityResource | null {
@@ -54,8 +55,6 @@ function cleanResource(id: string, type: CommunityResourceType, data: GifData | 
   return resource;
 }
 
-const sortType = {gif: 0, file: 1, link: 2} satisfies Record<CommunityResourceType, number>;
-
 export async function GET() {
   try {
     const [gifs, files, links] = await Promise.all([
@@ -74,6 +73,6 @@ export async function GET() {
 
     return NextResponse.json(resources);
   } catch {
-    return NextResponse.json({error: 'Community search unavailable'}, {status: 500});
+    return NextResponse.json({ error: 'Community search unavailable' }, { status: 500 });
   }
 }

@@ -10,6 +10,8 @@ import {
   xpToRequiredComboScore,
 } from '@/lib/pages/xpcalc';
 import PageHero from '@/components/page-hero';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { images } from '@/lib/assets';
 
 type FieldProps = {
@@ -48,10 +50,10 @@ const calcNumber = (value: InputValue) => num(value, 0);
 const calcMultiplier = (value: InputValue) => Math.max(1, num(value, 1));
 
 const Result = ({ label, value, big = false }: { label: string; value: string; big?: boolean }) => (
-  <div className={`xp-result ${big ? 'xp-result--big' : ''}`}>
+  <Card className={`xp-result ${big ? 'xp-result--big' : ''}`}>
     <span>{label}</span>
     <strong>{value}</strong>
-  </div>
+  </Card>
 );
 
 const Field = ({ label, value, min, max, step = 1, onChange }: FieldProps) => (
@@ -74,21 +76,30 @@ export default function XPCalculator() {
   const [loaded, setLoaded] = useState(false);
   const currentCalcLevel = calcLevel(level);
   const currentCalcPercent = calcNumber(percent);
-  const calcXPMultiplier = calcMultiplier(multiplier);
-  const goalCalcLevel = calcLevel(targetLevel);
-  const sessionGoalCalcLevel = calcLevel(sessionTargetLevel);
-  const startCalcLevel = calcLevel(startLevel);
-  const endCalcLevel = calcLevel(endLevel);
-  const averageCalcCombo = calcNumber(averageCombo);
+  const xpMultiplier = calcMultiplier(multiplier);
+  const goalLevel = calcLevel(targetLevel);
+  const sessionGoalLevel = calcLevel(sessionTargetLevel);
+  const start = calcLevel(startLevel);
+  const end = calcLevel(endLevel);
+  const averageRun = calcNumber(averageCombo);
 
-  const calc = useMemo(() => calculateProgressBetweenLevels(currentCalcLevel, currentCalcPercent, currentCalcLevel + 1, calcXPMultiplier, vip), [currentCalcLevel, currentCalcPercent, calcXPMultiplier, vip]);
-  const targetXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, goalCalcLevel), [currentCalcLevel, currentCalcPercent, goalCalcLevel]);
-  const targetCombo = useMemo(() => xpToRequiredComboScore(targetXP, calcXPMultiplier, vip), [targetXP, calcXPMultiplier, vip]);
-  const levelsRemaining = useMemo(() => Math.max(0, goalCalcLevel - currentCalcLevel), [goalCalcLevel, currentCalcLevel]);
-  const sessionXP = useMemo(() => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, sessionGoalCalcLevel), [currentCalcLevel, currentCalcPercent, sessionGoalCalcLevel]);
-  const sessionCombo = useMemo(() => xpToRequiredComboScore(sessionXP, calcXPMultiplier, vip), [sessionXP, calcXPMultiplier, vip]);
-  const runsNeeded = useMemo(() => (averageCalcCombo > 0 ? Math.ceil(sessionCombo / averageCalcCombo) : 0), [sessionCombo, averageCalcCombo]);
-  const betweenXP = useMemo(() => xpRequiredBetweenLevels(startCalcLevel, endCalcLevel), [startCalcLevel, endCalcLevel]);
+  const calc = useMemo(
+    () => calculateProgressBetweenLevels(currentCalcLevel, currentCalcPercent, currentCalcLevel + 1, xpMultiplier, vip),
+    [currentCalcLevel, currentCalcPercent, xpMultiplier, vip],
+  );
+  const targetXP = useMemo(
+    () => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, goalLevel),
+    [currentCalcLevel, currentCalcPercent, goalLevel],
+  );
+  const targetCombo = useMemo(() => xpToRequiredComboScore(targetXP, xpMultiplier, vip), [targetXP, xpMultiplier, vip]);
+  const levelsRemaining = useMemo(() => Math.max(0, goalLevel - currentCalcLevel), [goalLevel, currentCalcLevel]);
+  const sessionXP = useMemo(
+    () => xpRemainingToTargetLevel(currentCalcLevel, currentCalcPercent, sessionGoalLevel),
+    [currentCalcLevel, currentCalcPercent, sessionGoalLevel],
+  );
+  const sessionCombo = useMemo(() => xpToRequiredComboScore(sessionXP, xpMultiplier, vip), [sessionXP, xpMultiplier, vip]);
+  const runsNeeded = useMemo(() => (averageRun > 0 ? Math.ceil(sessionCombo / averageRun) : 0), [sessionCombo, averageRun]);
+  const betweenXP = useMemo(() => xpRequiredBetweenLevels(start, end), [start, end]);
 
   useEffect(() => {
     try {
@@ -116,7 +127,16 @@ export default function XPCalculator() {
   useEffect(() => {
     if (!loaded) return;
 
-    const saved: SavedValues = { level, multiplier, vip, targetLevel, sessionTargetLevel, averageCombo, startLevel, endLevel };
+    const saved: SavedValues = {
+      level,
+      multiplier,
+      vip,
+      targetLevel,
+      sessionTargetLevel,
+      averageCombo,
+      startLevel,
+      endLevel,
+    };
     localStorage.setItem(saveKey, JSON.stringify(saved));
   }, [level, multiplier, vip, targetLevel, sessionTargetLevel, averageCombo, startLevel, endLevel, loaded]);
 
@@ -125,7 +145,7 @@ export default function XPCalculator() {
       <PageHero eyebrow="Tool" title="XP Calculator" image={images.backgrounds.tools.xpcalc} />
 
       <section className="xp-layout">
-        <div className="xp-panel">
+        <Card className="xp-panel ring-0 shadow-none">
           <div className="xp-title">
             <span>Current progress</span>
           </div>
@@ -134,13 +154,13 @@ export default function XPCalculator() {
             <Field label="Current XP %" value={percent} min={0} max={100} step={0.1} onChange={setPercent} />
             <Field label="XP multiplier" value={multiplier} min={0} step={0.1} onChange={setMultiplier} />
           </div>
-          <button className={`xp-toggle ${vip ? 'is-on' : ''}`} type="button" aria-pressed={vip} onClick={() => setVip((current) => !current)}>
+          <Button className={`xp-toggle ${vip ? 'is-on' : ''}`} type="button" aria-pressed={vip} onClick={() => setVip((current) => !current)}>
             <span />
             VIP / Executive Runner 2x
-          </button>
-        </div>
+          </Button>
+        </Card>
 
-        <div className="xp-panel xp-panel--results">
+        <Card className="xp-panel ring-0 shadow-none">
           <div className="xp-title">
             <span>Next level</span>
           </div>
@@ -150,41 +170,47 @@ export default function XPCalculator() {
             <Result label="Effective XP" value={`${calc.effectiveMultiplier}x`} />
             <Result label="Full level XP" value={formatXP(calc.xpRequiredForNextLevel)} />
           </div>
-        </div>
+        </Card>
       </section>
 
       <section className="xp-advanced">
         <div className="xp-title xp-title--section"><span>Advanced XP stuff</span></div>
 
-        <div className="xp-panel">
+        <Card className="xp-panel ring-0 shadow-none">
           <div className="xp-title"><span>Sessions Needed</span></div>
           <div className="xp-fields xp-fields--tight">
             <Field label="Target level" value={sessionTargetLevel} min={1} onChange={setSessionTargetLevel} />
             <Field label="Average combo per run" value={averageCombo} min={0} onChange={setAverageCombo} />
           </div>
-          <Result label="Total combo needed" value={formatComboScore(sessionCombo)} />
-          <Result label="Runs needed" value={formatComboScore(runsNeeded)} />
-        </div>
+          <div className="xp-results xp-results--stack">
+            <Result label="Total combo needed" value={formatComboScore(sessionCombo)} />
+            <Result label="Runs needed" value={formatComboScore(runsNeeded)} />
+          </div>
+        </Card>
 
-        <div className="xp-panel">
+        <Card className="xp-panel ring-0 shadow-none">
           <div className="xp-title"><span>Level Goal</span></div>
           <div className="xp-fields xp-fields--tight">
             <Field label="Target level" value={targetLevel} min={1} onChange={setTargetLevel} />
           </div>
-          <Result label="Combo remaining" value={formatComboScore(targetCombo)} />
-          <Result label="XP remaining" value={formatXP(targetXP)} />
-          <Result label="Levels remaining" value={formatComboScore(levelsRemaining)} />
-        </div>
+          <div className="xp-results xp-results--stack">
+            <Result label="Combo remaining" value={formatComboScore(targetCombo)} />
+            <Result label="XP remaining" value={formatXP(targetXP)} />
+            <Result label="Levels remaining" value={formatComboScore(levelsRemaining)} />
+          </div>
+        </Card>
 
-        <div className="xp-panel">
+        <Card className="xp-panel ring-0 shadow-none">
           <div className="xp-title"><span>Level gap</span></div>
           <div className="xp-fields xp-fields--tight">
             <Field label="Level A" value={startLevel} min={1} onChange={setStartLevel} />
             <Field label="Level B" value={endLevel} min={1} onChange={setEndLevel} />
           </div>
-          <Result label="Combo needed" value={formatComboScore(xpToRequiredComboScore(betweenXP, calcXPMultiplier, vip))} />
-          <Result label="XP needed" value={formatXP(betweenXP)} />
-        </div>
+          <div className="xp-results xp-results--stack">
+            <Result label="Combo needed" value={formatComboScore(xpToRequiredComboScore(betweenXP, xpMultiplier, vip))} />
+            <Result label="XP needed" value={formatXP(betweenXP)} />
+          </div>
+        </Card>
       </section>
     </div>
   );

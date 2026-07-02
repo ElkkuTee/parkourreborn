@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import TimeTrialHub from '@/components/tools/timetrialhub';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Time Trial Hub',
@@ -13,12 +14,12 @@ export default function Page() {
       <section className="hub-page hub-page--wide">
         <div className="hub-container">
           <div className="tool-topbar">
-            <Link className="back-btn" href="/">
-              Back
-            </Link>
-            <a className="back-btn" href="https://wasans.tully.sh" target="_blank" rel="noopener noreferrer">
-              Official Scoring Website
-            </a>
+            <Button asChild className="back-btn">
+              <Link href="/">Back</Link>
+            </Button>
+            <Button asChild className="back-btn">
+              <a href="https://wasans.tully.sh" target="_blank" rel="noopener noreferrer">Official Scoring Website</a>
+            </Button>
           </div>
           <TimeTrialHub />
         </div>

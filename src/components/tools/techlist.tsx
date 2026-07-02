@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { CardSkeleton, ScreenReaderLoading, Skeleton } from '@/components/skeleton';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { DialogClose, DialogTitle } from '@/components/ui/dialog';
+import { HubDialog, HubDialogContent } from '@/components/ui/hub-dialog';
 import {
   fetchTechs,
   filterLabels,
@@ -19,7 +22,7 @@ import { useInView, useProgressiveList } from '@/lib/use-progressive-list';
 type Tab = 'overview' | 'tutorial';
 
 const filters: TechFilter[] = ['all', 'tech', 'concept', 'basic'];
-const skeletons = Array.from({length: 18});
+const skeletons = Array.from({ length: 18 });
 
 function Preview({ entry }: { entry: MovementEntry }) {
   const kind = previewKind(entry.videoUrl);
@@ -64,64 +67,62 @@ function CardPreview({ entry }: { entry: MovementEntry }) {
 
 function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; entries: MovementEntry[]; onClose: () => void; onPick: (entry: MovementEntry) => void }) {
   const [tab, setTab] = useState<Tab>('overview');
-  const [mounted, setMounted] = useState(false);
   const tutorial = youtubeEmbedUrl(entry.tutorialUrl);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     setTab('overview');
   }, [entry.name]);
 
   useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', close);
 
     return () => {
       document.body.style.overflow = overflow;
-      document.removeEventListener('keydown', close);
     };
-  }, [onClose]);
+  }, []);
 
-  if (!mounted) return null;
-
-  return createPortal((
-    <div className="tt-modal tech-modal" role="dialog" aria-modal="true" aria-label={entry.name}>
-      <button className="tt-scrim" type="button" aria-label="Close" onClick={onClose} />
-      <section className="tt-dialog tech-dialog">
+  return (
+    <HubDialog onOpenChange={(next) => {
+      if (!next) onClose();
+    }}>
+      <HubDialogContent className="tt-dialog tech-dialog" aria-label={entry.name}>
         <header className="tt-dialog__head">
           <div>
             <span>{kindLabels[entry.kind]}</span>
-            <h2>{entry.name}</h2>
+            <DialogTitle asChild>
+              <h2>{entry.name}</h2>
+            </DialogTitle>
           </div>
-          <button className="tt-close" type="button" aria-label="Close" onClick={onClose} autoFocus><span className="tt-close__icon" /></button>
+          <DialogClose asChild>
+            <Button className="tt-close" type="button" aria-label="Close" autoFocus>
+              <span className="tt-close__icon" />
+            </Button>
+          </DialogClose>
         </header>
 
         {tutorial ? (
           <div className="tt-tabs" role="tablist" aria-label="Tech list tabs">
-            <button className={tab === 'overview' ? 'is-on' : ''} type="button" aria-pressed={tab === 'overview'} onClick={() => setTab('overview')}>Overview</button>
-            <button className={tab === 'tutorial' ? 'is-on' : ''} type="button" aria-pressed={tab === 'tutorial'} onClick={() => setTab('tutorial')}>Tutorial</button>
+            <Button className={tab === 'overview' ? 'is-on' : ''} type="button" role="tab" aria-selected={tab === 'overview'} onClick={() => setTab('overview')}>
+              Overview
+            </Button>
+            <Button className={tab === 'tutorial' ? 'is-on' : ''} type="button" role="tab" aria-selected={tab === 'tutorial'} onClick={() => setTab('tutorial')}>
+              Tutorial
+            </Button>
           </div>
         ) : null}
 
         {tab === 'overview' ? (
           <div className="tech-overview">
             {entry.steps.length ? (
-              <div className="tech-steps">
+              <Card className="tech-steps">
                 {entry.steps.map((step, index) => {
                   const item = parseStep(step);
                   const match = findStepEntry(entries, item.label);
 
                   return (
                     <span className="tech-step-wrap" key={`${step}-${index}`}>
-                      <button
+                      <Button
                         className={`tech-step${item.optional ? ' is-optional' : ''}`}
                         type="button"
                         onClick={() => {
@@ -130,23 +131,23 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
                       >
                         <span>{item.label}</span>
                         {item.optional ? <small>optional</small> : null}
-                      </button>
+                      </Button>
                       {index < entry.steps.length - 1 ? <span className="tech-arrow" aria-hidden="true">&rarr;</span> : null}
                     </span>
                   );
                 })}
-              </div>
+              </Card>
             ) : null}
 
             <Preview entry={entry} />
 
             {entry.aliases.length ? (
-              <section className="tech-aliases">
+              <Card className="tech-aliases">
                 <h3>Aliases</h3>
                 <div>
                   {entry.aliases.map((alias) => <span key={alias}>{alias}</span>)}
                 </div>
-              </section>
+              </Card>
             ) : null}
           </div>
         ) : null}
@@ -161,9 +162,9 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
             />
           </div>
         ) : null}
-      </section>
-    </div>
-  ), document.body);
+      </HubDialogContent>
+    </HubDialog>
+  );
 }
 
 export default function TechList() {
@@ -205,9 +206,9 @@ export default function TechList() {
 
         <div className="tech-filters" aria-label="Tech list filters">
           {filters.map((item) => (
-            <button className={filter === item ? 'is-on' : ''} type="button" aria-pressed={filter === item} key={item} onClick={() => setFilter(item)}>
+            <Button className={filter === item ? 'is-on' : ''} type="button" aria-pressed={filter === item} key={item} onClick={() => setFilter(item)}>
               {filterLabels[item]}
-            </button>
+            </Button>
           ))}
         </div>
       </section>
@@ -222,19 +223,19 @@ export default function TechList() {
         {!loading && entries.length > 0 && !results.length ? <div className="tt-state">No entries matched your search.</div> : null}
 
         {!loading ? shown.visibleItems.map(({entry, matchedAlias}) => (
-          <button className="tech-card" type="button" key={entry.name} onClick={() => setSelected(entry)}>
+          <Button className="tech-card" type="button" key={entry.name} onClick={() => setSelected(entry)}>
             <CardPreview entry={entry} />
             <span className="tech-card__body">
               <strong>{entry.name}</strong>
               {matchedAlias ? <small>matched: {matchedAlias}</small> : null}
             </span>
-          </button>
+          </Button>
         )) : null}
         {!loading && shown.revealing ? skeletons.slice(0, 6).map((_, index) => <CardSkeleton className="tech-card" key={`more-${index}`} />) : null}
         {!loading && shown.hasMore ? <div className="skeleton-sentinel" ref={shown.sentinelRef} aria-hidden="true" /> : null}
       </section>
 
-      {selected ? <TechModal entry={selected} entries={entries} onClose={() => setSelected(null)} onPick={setSelected} /> : null}
+      {selected ? <TechModal entry={selected} entries={entries} key={selected.name} onClose={() => setSelected(null)} onPick={setSelected} /> : null}
     </div>
   );
 }

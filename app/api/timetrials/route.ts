@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getCollectionDocuments } from '@/lib/server/firebase';
 import type { TimeTrial } from '@/lib/pages/timetrials';
+import { getCollectionDocuments } from '@/lib/server/firebase';
 import { cleanUrl } from '@/lib/url';
 
 type TrialData = {
@@ -18,6 +18,7 @@ type TrialData = {
 export const dynamic = 'force-dynamic';
 
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value));
+
 const sortNum = (value: unknown) => {
   const next = Number(value);
   return Number.isFinite(next) ? next : 9999;
@@ -47,6 +48,6 @@ export async function GET() {
 
     return NextResponse.json(trials);
   } catch {
-    return NextResponse.json({error: 'Time trials unavailable'}, {status: 500});
+    return NextResponse.json({ error: 'Time trials unavailable' }, { status: 500 });
   }
 }

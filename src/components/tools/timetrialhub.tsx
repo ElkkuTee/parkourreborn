@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import PageHero from '@/components/page-hero';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { DialogClose, DialogTitle } from '@/components/ui/dialog';
+import { HubDialog, HubDialogContent } from '@/components/ui/hub-dialog';
 import { images } from '@/lib/assets';
 import { fetchTimeTrials, fetchWorldRecords, trialKey, wrVideoURL } from '@/lib/pages/timetrials';
 import type { TimeTrial, WorldRecord } from '@/lib/pages/timetrials';
@@ -41,7 +44,7 @@ function invalidTime(trial: TimeTrial, value: string) {
 
 const isTimeCell = (target: EventTarget | null) => target instanceof HTMLElement && Boolean(target.closest('.tt-time'));
 
-const rowSkeletons = Array.from({length: 24});
+const rowSkeletons = Array.from({ length: 24 });
 
 function EmbedVideo({ url }: { url: string }) {
   if (!url) return <div className="tt-empty">No video yet</div>;
@@ -63,70 +66,74 @@ function RecordVideo({ url }: { url: string }) {
 
 function TrialModal({ trial, wr, onClose }: { trial: TimeTrial; wr?: WorldRecord; onClose: () => void }) {
   const [mode, setMode] = useState<VideoMode>('plat1');
-  const [mounted, setMounted] = useState(false);
   const wrURL = wrVideoURL(wr?.submissionUuid ?? '');
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', close);
 
     return () => {
       document.body.style.overflow = overflow;
-      document.removeEventListener('keydown', close);
     };
-  }, [onClose]);
+  }, []);
 
-  if (!mounted) return null;
-
-  return createPortal((
-    <div className="tt-modal" role="dialog" aria-modal="true" aria-label={`${trial.name} route videos`}>
-      <button className="tt-scrim" type="button" aria-label="Close" onClick={onClose} />
-      <section className="tt-dialog">
+  return (
+    <HubDialog onOpenChange={(next) => {
+      if (!next) onClose();
+    }}>
+      <HubDialogContent className="tt-dialog" aria-label={`${trial.name} route videos`}>
         <header className="tt-dialog__head">
           <div>
             <span>{trial.district}</span>
-            <h2>{trial.name}</h2>
+            <DialogTitle asChild>
+              <h2>{trial.name}</h2>
+            </DialogTitle>
             <small>{trial.difficulty}</small>
           </div>
-          <button className="tt-close" type="button" aria-label="Close" onClick={onClose}><span className="tt-close__icon" /></button>
+          <DialogClose asChild>
+            <Button className="tt-close" type="button" aria-label="Close">
+              <span className="tt-close__icon" />
+            </Button>
+          </DialogClose>
         </header>
 
         <div className="tt-tabs" role="tablist" aria-label="Route video">
-          <button className={mode === 'plat1' ? 'is-on' : ''} type="button" aria-pressed={mode === 'plat1'} onClick={() => setMode('plat1')}>Plat 1</button>
-          <button className={mode === 'plat2' ? 'is-on' : ''} type="button" aria-pressed={mode === 'plat2'} onClick={() => setMode('plat2')}>Plat 2</button>
-          <button className={mode === 'wr' ? 'is-on' : ''} type="button" aria-pressed={mode === 'wr'} onClick={() => setMode('wr')}>WR</button>
+          <Button className={mode === 'plat1' ? 'is-on' : ''} type="button" role="tab" aria-selected={mode === 'plat1'} onClick={() => setMode('plat1')}>
+            Plat 1
+          </Button>
+          <Button className={mode === 'plat2' ? 'is-on' : ''} type="button" role="tab" aria-selected={mode === 'plat2'} onClick={() => setMode('plat2')}>
+            Plat 2
+          </Button>
+          <Button className={mode === 'wr' ? 'is-on' : ''} type="button" role="tab" aria-selected={mode === 'wr'} onClick={() => setMode('wr')}>
+            WR
+          </Button>
         </div>
 
-        <div className="tt-video">
-          {mode === 'plat1' ? <EmbedVideo url={trial.videoURL} /> : null}
-          {mode === 'plat2' ? <EmbedVideo url={trial.videoURL2} /> : null}
-          {mode === 'wr' ? <RecordVideo url={wrURL} /> : null}
-        </div>
+        {mode === 'plat1' ? (
+          <div className="tt-video"><EmbedVideo url={trial.videoURL} /></div>
+        ) : null}
+        {mode === 'plat2' ? (
+          <div className="tt-video"><EmbedVideo url={trial.videoURL2} /></div>
+        ) : null}
+        {mode === 'wr' ? (
+          <div className="tt-video"><RecordVideo url={wrURL} /></div>
+        ) : null}
 
         <footer className="tt-medals">
           {medals.map(([icon, label, key]) => (
-            <div className="tt-medal" key={label}>
-              <span className="tt-medal__icon" style={{backgroundImage: `url(${icon})`}} />
+            <Card className="tt-medal" key={label}>
+              <span className="tt-medal__icon" style={{ backgroundImage: `url(${icon})` }} />
               <strong>{formatTime(trial[key])}</strong>
-            </div>
+            </Card>
           ))}
-          <div className="tt-medal">
-            <span className="tt-medal__icon" style={{backgroundImage: `url(${images.elements.timetrials.worldrecord})`}} />
+          <Card className="tt-medal">
+            <span className="tt-medal__icon" style={{ backgroundImage: `url(${images.elements.timetrials.worldrecord})` }} />
             <strong>{wr ? formatTime(wr.time) : 'N/A'}</strong>
-          </div>
+          </Card>
         </footer>
-      </section>
-    </div>
-  ), document.body);
+      </HubDialogContent>
+    </HubDialog>
+  );
 }
 
 function TrialRowsSkeleton() {
@@ -193,10 +200,10 @@ export default function TimeTrialHub() {
       <PageHero eyebrow="Tool" title="Time Trial Hub" image={images.backgrounds.tools.timetrialhub} />
 
       <section className="tt-summary">
-        <div className="xp-result xp-result--big tt-average">
+        <Card className="xp-result xp-result--big tt-average">
           <span>Average Wasans score</span>
           {recordsLoading ? <Skeleton className="tt-average-skeleton" /> : <strong>{formatWasansScore(averageScore)}</strong>}
-        </div>
+        </Card>
       </section>
 
       {recordsError ? <div className="tt-note">{recordsError}</div> : null}
@@ -228,7 +235,7 @@ export default function TimeTrialHub() {
             };
 
             return (
-              <button
+              <Button
                 className="tt-row"
                 type="button"
                 key={trial.name}
@@ -251,7 +258,7 @@ export default function TimeTrialHub() {
                   {invalid ? <small>Invalid</small> : null}
                 </label>
                 <span className="tt-score" data-label="Score">{waitingForWr ? <Skeleton className="tt-score-skeleton" /> : formatWasansScore(score)}</span>
-              </button>
+              </Button>
             );
           })}
         </div>

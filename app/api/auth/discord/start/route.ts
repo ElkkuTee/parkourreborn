@@ -8,12 +8,12 @@ const env = () => {
   const clientId = process.env.DISCORD_CLIENT_ID;
   const redirectUri = process.env.DISCORD_REDIRECT_URI;
   if (!clientId || !redirectUri) throw new Error('Discord env is missing');
-  return {clientId, redirectUri};
+  return { clientId, redirectUri };
 };
 
 export async function POST() {
   try {
-    const {clientId, redirectUri} = env();
+    const { clientId, redirectUri } = env();
     const state = randomBytes(32).toString('hex');
     const now = Date.now();
 
@@ -29,7 +29,7 @@ export async function POST() {
     url.searchParams.set('scope', 'identify');
     url.searchParams.set('state', state);
 
-    const response = NextResponse.json({url: url.toString()});
+    const response = NextResponse.json({ url: url.toString() });
     response.cookies.set('discord_oauth_state', state, {
       httpOnly: true,
       sameSite: 'lax',
@@ -40,6 +40,6 @@ export async function POST() {
 
     return response;
   } catch {
-    return NextResponse.json({error: 'Could not start Discord login'}, {status: 400});
+    return NextResponse.json({ error: 'Could not start Discord login' }, { status: 400 });
   }
 }

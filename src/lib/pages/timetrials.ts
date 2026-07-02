@@ -34,6 +34,7 @@ type WrResponse = {
 };
 
 export const trialKey = (name: string) => name.trim().toLowerCase();
+
 export const wrVideoURL = (submissionUuid: string) => {
   const id = cleanPathPart(submissionUuid);
   return id ? `https://assets.wasans.tully.sh/scores/${id}.mp4` : '';

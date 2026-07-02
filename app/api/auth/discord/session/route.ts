@@ -3,15 +3,15 @@ import { getAdminAuth, getAdminDb } from '@/lib/server/firebase-admin';
 
 export async function POST(request: NextRequest) {
   const login = request.cookies.get('discord_login')?.value;
-  if (!login) return NextResponse.json({token: null});
+  if (!login) return NextResponse.json({ token: null });
 
   const db = getAdminDb();
   const ref = db.collection('discordLogins').doc(login);
   const doc = await ref.get();
-  const data = doc.data() as {uid?: string; discordId?: string; expiresAt?: number} | undefined;
+  const data = doc.data() as { uid?: string; discordId?: string; expiresAt?: number } | undefined;
 
   const done = (token: string | null) => {
-    const response = NextResponse.json({token});
+    const response = NextResponse.json({ token });
     response.cookies.delete('discord_login');
     return response;
   };

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/server/firebase-admin';
 import type { MovementEntry, MovementKind } from '@/lib/pages/techlist';
+import { getAdminDb } from '@/lib/server/firebase-admin';
 import { cleanUrl } from '@/lib/url';
 
 type MovementData = {
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 const kinds = new Set<MovementKind>(['tech', 'concept', 'basic']);
 const text = (value: unknown) => (value === undefined || value === null ? '' : String(value).trim());
-const list = (value: unknown) => Array.isArray(value) ? value.map(text).filter(Boolean) : [];
+const list = (value: unknown) => (Array.isArray(value) ? value.map(text).filter(Boolean) : []);
 
 function cleanKind(value: unknown): MovementKind {
   const kind = text(value).toLowerCase() as MovementKind;
@@ -43,6 +43,6 @@ export async function GET() {
 
     return NextResponse.json(techs);
   } catch {
-    return NextResponse.json({error: 'Tech list unavailable'}, {status: 500});
+    return NextResponse.json({ error: 'Tech list unavailable' }, { status: 500 });
   }
 }

@@ -1,9 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useAuth } from '@/components/auth-provider';
 import { ScreenReaderLoading, Skeleton } from '@/components/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { DialogClose, DialogTitle } from '@/components/ui/dialog';
+import { HubDialog, HubDialogContent } from '@/components/ui/hub-dialog';
 import { discordAvatar } from '@/lib/discord';
 
 type AccountModalProps = {
@@ -21,63 +25,64 @@ const tabs: { id: Tab; label: string }[] = [
 function AccountSkeleton() {
   return (
     <>
-      <div className="account-card account-card--skeleton" aria-hidden="true">
+      <Card className="account-card account-card--skeleton" aria-hidden="true">
         <Skeleton className="account-avatar-skeleton" />
         <span>
           <Skeleton className="account-line account-line--small" />
           <Skeleton className="account-line account-line--name" />
         </span>
-      </div>
+      </Card>
       <Skeleton className="account-action-skeleton" />
     </>
   );
 }
 
 export default function AccountModal({ onClose }: AccountModalProps) {
-  const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<Tab>('account');
   const { discord, loading, busy, error, login, logout } = useAuth();
   const name = discord?.globalName || discord?.username || 'Discord user';
   const avatar = discord ? discordAvatar(discord) : '';
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', close);
 
     return () => {
       document.body.style.overflow = overflow;
-      document.removeEventListener('keydown', close);
     };
-  }, [onClose]);
+  }, []);
 
-  if (!mounted) return null;
-
-  return createPortal((
-    <div className="account-modal" role="dialog" aria-modal="true" aria-label="Account">
-      <button className="tt-scrim" type="button" aria-label="Close account" onClick={onClose} />
-      <section className="account-dialog">
+  return (
+    <HubDialog onOpenChange={(next) => {
+      if (!next) onClose();
+    }}>
+      <HubDialogContent className="account-dialog" aria-label="Account">
         <header className="tt-dialog__head">
           <div>
             <span>Profile</span>
-            <h2>Account</h2>
+            <DialogTitle asChild>
+              <h2>Account</h2>
+            </DialogTitle>
           </div>
-          <button className="tt-close" type="button" aria-label="Close account" onClick={onClose}><span className="tt-close__icon" /></button>
+          <DialogClose asChild>
+            <Button className="tt-close" type="button" aria-label="Close account">
+              <span className="tt-close__icon" />
+            </Button>
+          </DialogClose>
         </header>
 
         <div className="tt-tabs account-tabs" role="tablist" aria-label="Account sections">
           {tabs.map((item) => (
-            <button className={tab === item.id ? 'is-on' : ''} type="button" role="tab" aria-selected={tab === item.id} key={item.id} onClick={() => setTab(item.id)}>
+            <Button
+              className={tab === item.id ? 'is-on' : ''}
+              type="button"
+              role="tab"
+              aria-selected={tab === item.id}
+              key={item.id}
+              onClick={() => setTab(item.id)}
+            >
               {item.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -89,17 +94,20 @@ export default function AccountModal({ onClose }: AccountModalProps) {
 
             {!loading && discord ? (
               <>
-                <div className="account-card">
-                  {avatar ? <img src={avatar} alt="" /> : <span className="account-avatar">{name.slice(0, 1)}</span>}
+                <Card className="account-card">
+                  <Avatar className="account-avatar">
+                    {avatar ? <AvatarImage src={avatar} alt="" /> : null}
+                    <AvatarFallback>{name.slice(0, 1)}</AvatarFallback>
+                  </Avatar>
                   <span>
                     <small>Logged in as</small>
                     <strong>{name}</strong>
                   </span>
-                </div>
+                </Card>
                 {error ? <span className="account-error">{error}</span> : null}
-                <button className="account-action" type="button" disabled={busy} onClick={logout}>
+                <Button className="account-action" type="button" disabled={busy} onClick={logout}>
                   Log out
-                </button>
+                </Button>
               </>
             ) : null}
 
@@ -109,18 +117,20 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                   <small>Not logged in</small>
                 </div>
                 {error ? <span className="account-error">{error}</span> : null}
-                <button className="account-action" type="button" disabled={busy} onClick={login}>
+                <Button className="account-action" type="button" disabled={busy} onClick={login}>
                   Log in with Discord
-                </button>
+                </Button>
               </>
             ) : null}
           </div>
-        ) : (
+        ) : null}
+
+        {tab !== 'account' ? (
           <div className="account-panel account-panel--soon">
             <span>Coming soon</span>
           </div>
-        )}
-      </section>
-    </div>
-  ), document.body);
+        ) : null}
+      </HubDialogContent>
+    </HubDialog>
+  );
 }

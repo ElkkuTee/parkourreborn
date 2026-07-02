@@ -11,26 +11,25 @@ type DiscordUser = {
   discriminator?: string | null;
 };
 
+const maxAge = 5 * 60;
+const discordUid = (id: string) => `discord-${id}`;
+
 const home = (request: NextRequest, status: string) => {
   const url = new URL('/', request.url);
   url.searchParams.set('discord', status);
   return url;
 };
 
-const maxAge = 5 * 60;
-
-const discordUid = (id: string) => `discord-${id}`;
-
 const env = () => {
   const clientId = process.env.DISCORD_CLIENT_ID;
   const clientSecret = process.env.DISCORD_CLIENT_SECRET;
   const redirectUri = process.env.DISCORD_REDIRECT_URI;
   if (!clientId || !clientSecret || !redirectUri) throw new Error('Discord env is missing');
-  return {clientId, clientSecret, redirectUri};
+  return { clientId, clientSecret, redirectUri };
 };
 
 async function exchangeCode(code: string) {
-  const {clientId, clientSecret, redirectUri} = env();
+  const { clientId, clientSecret, redirectUri } = env();
   const body = new URLSearchParams({
     client_id: clientId,
     client_secret: clientSecret,
@@ -41,17 +40,17 @@ async function exchangeCode(code: string) {
 
   const response = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
-    headers: {'content-type': 'application/x-www-form-urlencoded'},
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body,
   });
 
   if (!response.ok) throw new Error('Discord token exchange failed');
-  return response.json() as Promise<{access_token: string}>;
+  return response.json() as Promise<{ access_token: string }>;
 }
 
 async function getDiscordUser(accessToken: string) {
   const response = await fetch('https://discord.com/api/users/@me', {
-    headers: {authorization: `Bearer ${accessToken}`},
+    headers: { authorization: `Bearer ${accessToken}` },
   });
 
   if (!response.ok) throw new Error('Discord user fetch failed');
@@ -61,12 +60,12 @@ async function getDiscordUser(accessToken: string) {
 async function syncAuthUser(uid: string, user: DiscordUser) {
   const displayName = user.global_name || user.username;
   const photoURL = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` : undefined;
-  const data = photoURL ? {displayName, photoURL} : {displayName};
+  const data = photoURL ? { displayName, photoURL } : { displayName };
 
   try {
     await getAdminAuth().updateUser(uid, data);
   } catch {
-    await getAdminAuth().createUser({uid, ...data});
+    await getAdminAuth().createUser({ uid, ...data });
   }
 }
 
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
   const db = getAdminDb();
   const stateRef = db.collection('discordAuthStates').doc(state);
   const stateDoc = await stateRef.get();
-  const stateData = stateDoc.data() as {expiresAt?: number} | undefined;
+  const stateData = stateDoc.data() as { expiresAt?: number } | undefined;
 
   if (!stateDoc.exists || !stateData?.expiresAt || stateData.expiresAt < Date.now()) {
     await stateRef.delete().catch(() => {});
@@ -108,7 +107,7 @@ export async function GET(request: NextRequest) {
         linkedAt,
       },
       updatedAt: FieldValue.serverTimestamp(),
-    }, {merge: true});
+    }, { merge: true });
 
     await db.collection('discordLogins').doc(login).set({
       uid,
