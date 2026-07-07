@@ -74,6 +74,10 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
   const [tip, setTip] = useState<Tip | null>(null);
   const tutorial = youtubeEmbedUrl(entry.tutorialUrl);
   const aliases = entry.aliases.length ? entry.aliases.join(', ') : 'No aliases';
+  const hasAdvanced = useMemo(() => entry.steps.some((step) => {
+    const item = parseStep(step);
+    return item.add || item.remove;
+  }), [entry.steps]);
   const steps = useMemo(() => entry.steps
     .map((step, index) => ({ step, index, item: parseStep(step) }))
     .filter(({ item }) => advanced ? !item.remove : !item.add), [advanced, entry.steps]);
@@ -134,6 +138,7 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
               type="button"
               aria-label={advanced ? 'Hide additions' : 'Show additions'}
               aria-pressed={advanced}
+              disabled={!hasAdvanced}
               onClick={() => {
                 setAdvanced((value) => !value);
                 setTip(null);
@@ -281,7 +286,7 @@ export default function TechList() {
           <Button className="tech-card" type="button" key={entry.name} onClick={() => setSelected(entry)}>
             <CardPreview entry={entry} />
             <span className="tech-card__body">
-              <strong>{matchedAlias || entry.name}</strong>
+              <strong>{matchedAlias || entry.name}{matchedAlias ? '*' : ''}</strong>
             </span>
           </Button>
         )) : null}
