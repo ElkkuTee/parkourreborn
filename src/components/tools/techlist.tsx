@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Info, ToggleLeft, ToggleRight } from 'lucide-react';
 import { CardSkeleton, ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -20,6 +22,7 @@ import type { MovementEntry, TechFilter } from '@/lib/pages/techlist';
 import { useInView, useProgressiveList } from '@/lib/use-progressive-list';
 
 type Tab = 'overview' | 'tutorial';
+type Tip = { text: string; x: number; y: number; arrow: number };
 
 const filters: TechFilter[] = ['all', 'tech', 'concept', 'basic'];
 const skeletons = Array.from({ length: 18 });
@@ -67,10 +70,31 @@ function CardPreview({ entry }: { entry: MovementEntry }) {
 
 function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; entries: MovementEntry[]; onClose: () => void; onPick: (entry: MovementEntry) => void }) {
   const [tab, setTab] = useState<Tab>('overview');
+  const [advanced, setAdvanced] = useState(false);
+  const [tip, setTip] = useState<Tip | null>(null);
   const tutorial = youtubeEmbedUrl(entry.tutorialUrl);
+  const aliases = entry.aliases.length ? entry.aliases.join(', ') : 'No aliases';
+  const steps = useMemo(() => entry.steps
+    .map((step, index) => ({ step, index, item: parseStep(step) }))
+    .filter(({ item }) => advanced ? !item.remove : !item.add), [advanced, entry.steps]);
+
+  const showTip = (text: string) => (event: MouseEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    const maxWidth = 320;
+    const pad = 18;
+    const min = pad + maxWidth / 2;
+    const max = window.innerWidth - pad - maxWidth / 2;
+    const x = max > min ? Math.min(Math.max(center, min), max) : window.innerWidth / 2;
+    const arrow = Math.min(Math.max(center - x, -maxWidth / 2 + 16), maxWidth / 2 - 16);
+
+    setTip({ text, x, y: rect.top, arrow });
+  };
 
   useEffect(() => {
     setTab('overview');
+    setAdvanced(false);
+    setTip(null);
   }, [entry.name]);
 
   useEffect(() => {
@@ -90,15 +114,34 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
         <header className="tt-dialog__head">
           <div>
             <span>{kindLabels[entry.kind]}</span>
-            <DialogTitle asChild>
-              <h2>{entry.name}</h2>
-            </DialogTitle>
+            <div className="tech-title">
+              <DialogTitle asChild>
+                <h2>{entry.name}</h2>
+              </DialogTitle>
+              <span className="tech-info-wrap" onMouseEnter={showTip(aliases)} onMouseMove={showTip(aliases)} onMouseLeave={() => setTip(null)}>
+                <Info className="tech-info" aria-hidden="true" />
+              </span>
+            </div>
           </div>
-          <DialogClose asChild>
-            <Button className="tt-close" type="button" aria-label="Close" autoFocus>
-              <span className="tt-close__icon" />
+          <div className="tech-head-actions">
+            <DialogClose asChild>
+              <Button className="tt-close" type="button" aria-label="Close" autoFocus>
+                <span className="tt-close__icon" />
+              </Button>
+            </DialogClose>
+            <Button
+              className={`tt-copy tech-advanced-toggle${advanced ? ' is-on' : ''}`}
+              type="button"
+              aria-label={advanced ? 'Hide additions' : 'Show additions'}
+              aria-pressed={advanced}
+              onClick={() => {
+                setAdvanced((value) => !value);
+                setTip(null);
+              }}
+            >
+              {advanced ? <ToggleRight /> : <ToggleLeft />}
             </Button>
-          </DialogClose>
+          </div>
         </header>
 
         {tutorial ? (
@@ -114,25 +157,33 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
 
         {tab === 'overview' ? (
           <div className="tech-overview">
-            {entry.steps.length ? (
+            {steps.length ? (
               <Card className="tech-steps">
-                {entry.steps.map((step, index) => {
-                  const item = parseStep(step);
+                {steps.map(({ step, index: stepIndex, item }, index) => {
                   const match = findStepEntry(entries, item.label);
+                  const mark = item.optional ? '*' : item.add ? '+' : item.remove ? '-' : '';
+                  const tipText = item.optional ? 'Optional' : item.add ? 'Addition' : '';
+                  const stepButton = (
+                    <Button
+                      className={`tech-step${item.optional ? ' is-optional' : ''}${item.add ? ' is-addition' : ''}${item.remove ? ' is-remove' : ''}`}
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => {
+                        if (match) onPick(match);
+                      }}
+                    >
+                      <span>{item.label}{mark ? <b className={item.add ? 'is-addition' : item.remove ? 'is-remove' : ''} aria-hidden="true">{mark}</b> : null}</span>
+                    </Button>
+                  );
 
                   return (
-                    <span className="tech-step-wrap" key={`${step}-${index}`}>
-                      <Button
-                        className={`tech-step${item.optional ? ' is-optional' : ''}`}
-                        type="button"
-                        onClick={() => {
-                          if (match) onPick(match);
-                        }}
-                      >
-                        <span>{item.label}</span>
-                        {item.optional ? <small>optional</small> : null}
-                      </Button>
-                      {index < entry.steps.length - 1 ? <span className="tech-arrow" aria-hidden="true">&rarr;</span> : null}
+                    <span className="tech-step-wrap" key={`${step}-${stepIndex}`}>
+                      {tipText ? (
+                        <span className="tech-step-tip-wrap" onMouseEnter={showTip(tipText)} onMouseMove={showTip(tipText)} onMouseLeave={() => setTip(null)}>
+                          {stepButton}
+                        </span>
+                      ) : stepButton}
+                      {index < steps.length - 1 ? <span className="tech-arrow" aria-hidden="true">&rarr;</span> : null}
                     </span>
                   );
                 })}
@@ -140,15 +191,6 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
             ) : null}
 
             <Preview entry={entry} />
-
-            {entry.aliases.length ? (
-              <Card className="tech-aliases">
-                <h3>Aliases</h3>
-                <div>
-                  {entry.aliases.map((alias) => <span key={alias}>{alias}</span>)}
-                </div>
-              </Card>
-            ) : null}
           </div>
         ) : null}
 
@@ -163,6 +205,19 @@ function TechModal({ entry, entries, onClose, onPick }: { entry: MovementEntry; 
           </div>
         ) : null}
       </HubDialogContent>
+      {tip && typeof document !== 'undefined' ? createPortal(
+        <div
+          className="tech-floating-tip"
+          style={{
+            left: tip.x,
+            top: tip.y,
+            '--tip-arrow': `${tip.arrow}px`,
+          } as CSSProperties}
+        >
+          {tip.text}
+        </div>,
+        document.body,
+      ) : null}
     </HubDialog>
   );
 }
@@ -226,8 +281,7 @@ export default function TechList() {
           <Button className="tech-card" type="button" key={entry.name} onClick={() => setSelected(entry)}>
             <CardPreview entry={entry} />
             <span className="tech-card__body">
-              <strong>{entry.name}</strong>
-              {matchedAlias ? <small>matched: {matchedAlias}</small> : null}
+              <strong>{matchedAlias || entry.name}</strong>
             </span>
           </Button>
         )) : null}

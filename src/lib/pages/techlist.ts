@@ -20,6 +20,8 @@ export type SearchResult = {
 export type ParsedStep = {
   label: string;
   optional: boolean;
+  add: boolean;
+  remove: boolean;
 };
 
 export type PreviewKind = 'video' | 'image' | 'none';
@@ -40,6 +42,12 @@ export const filterLabels = {
 const videoExt = new Set(['mp4', 'webm', 'mov']);
 const imageExt = new Set(['gif', 'png', 'jpg', 'jpeg', 'webp']);
 const key = (value: string) => value.trim().toLowerCase();
+const flatKey = (value: string) => key(value).replace(/\s+/g, '');
+
+type SearchKey = {
+  text: string;
+  flat: string;
+};
 
 function ext(url: string) {
   const clean = url.split('?')[0].split('#')[0];
@@ -50,31 +58,37 @@ function kindText(entry: MovementEntry) {
   return `${entry.kind} ${kindLabels[entry.kind]} ${filterLabels[entry.kind]}`;
 }
 
-function aliasMatch(entry: MovementEntry, search: string) {
-  return entry.aliases.find((alias) => key(alias).includes(search)) ?? '';
+function hits(value: string, search: SearchKey) {
+  const text = key(value);
+  return text.includes(search.text) || Boolean(search.flat && flatKey(value).includes(search.flat));
 }
 
-function stepMatch(entry: MovementEntry, search: string) {
-  return entry.steps.some((step) => key(parseStep(step).label).includes(search));
+function aliasMatch(entry: MovementEntry, search: SearchKey) {
+  return entry.aliases.find((alias) => hits(alias, search)) ?? '';
 }
 
-function rankEntry(entry: MovementEntry, search: string): SearchResult | null {
-  if (!search) return {entry, matchedAlias: '', score: 100};
+function stepMatch(entry: MovementEntry, search: SearchKey) {
+  return entry.steps.some((step) => hits(parseStep(step).label, search));
+}
+
+function rankEntry(entry: MovementEntry, search: SearchKey): SearchResult | null {
+  if (!search.text) return {entry, matchedAlias: '', score: 100};
 
   const name = key(entry.name);
-  const aliases = entry.aliases.map((alias) => ({ label: alias, value: key(alias) }));
+  const nameFlat = flatKey(entry.name);
+  const aliases = entry.aliases.map((alias) => ({ text: key(alias), flat: flatKey(alias) }));
   const steps = stepMatch(entry, search);
-  const kind = kindText(entry).toLowerCase().includes(search);
+  const kind = hits(kindText(entry), search);
   const alias = aliasMatch(entry, search);
-  const onlyAlias = Boolean(alias && !name.includes(search) && !steps && !kind);
+  const onlyAlias = Boolean(alias && !hits(entry.name, search) && !steps && !kind);
   const base = {entry, matchedAlias: onlyAlias ? alias : '', score: 0};
 
-  if (name === search) return {...base, score: 0};
-  if (name.startsWith(search)) return {...base, score: 1};
-  if (aliases.some((item) => item.value === search)) return {...base, score: 2};
-  if (aliases.some((item) => item.value.startsWith(search))) return {...base, score: 3};
+  if (name === search.text || nameFlat === search.flat) return {...base, score: 0};
+  if (name.startsWith(search.text) || nameFlat.startsWith(search.flat)) return {...base, score: 1};
+  if (aliases.some((item) => item.text === search.text || item.flat === search.flat)) return {...base, score: 2};
+  if (aliases.some((item) => item.text.startsWith(search.text) || item.flat.startsWith(search.flat))) return {...base, score: 3};
   if (steps) return {...base, score: 4};
-  if (name.includes(search) || kind || alias) return {...base, score: 5};
+  if (hits(entry.name, search) || kind || alias) return {...base, score: 5};
 
   return null;
 }
@@ -89,15 +103,21 @@ export async function fetchTechs(): Promise<MovementEntry[]> {
 
 export function parseStep(step: string): ParsedStep {
   const label = step.trim();
-  const optional = /\*\s*$/.test(label);
+  const marker = label.match(/[*+-]\s*$/)?.[0].trim() ?? '';
+
   return {
-    label: optional ? label.replace(/\*\s*$/, '').trim() : label,
-    optional,
+    label: marker ? label.replace(/[*+-]\s*$/, '').trim() : label,
+    optional: marker === '*',
+    add: marker === '+',
+    remove: marker === '-',
   };
 }
 
 export function searchTechs(entries: MovementEntry[], query: string, filter: TechFilter): SearchResult[] {
-  const search = key(query);
+  const search = {
+    text: key(query),
+    flat: flatKey(query),
+  };
 
   return entries
     .filter((entry) => filter === 'all' || entry.kind === filter)
