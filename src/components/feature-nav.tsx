@@ -35,6 +35,7 @@ const features: Feature[] = [
       { title: 'Parkour Guessr', image: images.backgrounds.games.parkourguessr, href: '/parkourguessr' },
       { title: 'Incremental Parkour', image: images.backgrounds.games.incrementalparkour, href: '/incrementalparkour' },
       { title: 'Bag Opening Simulator', image: images.backgrounds.games.bagopensimulator, href: '/bagopensimulator' },
+      { title: 'Parkour MC', image: images.backgrounds.games.parkourmc, href: '/parkourmc' },
     ],
   },
   {

@@ -19,6 +19,7 @@ export const images = {
       parkourguessr: '/backgrounds/games/parkourguessr.webp',
       incrementalparkour: '/backgrounds/games/incrementalparkour.webp',
       bagopensimulator: '/backgrounds/games/bagopensimulator.webp',
+      parkourmc: '/backgrounds/games/parkourmc.webp',
     },
     community: {
       bg: '/backgrounds/community/bg.webp',
