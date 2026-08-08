@@ -4,6 +4,7 @@ export const images = {
     icon: '/logo/icon.ico',
     hero: '/logo/hero-logo.webp',
     og: '/logo/og-logo.webp',
+    ai: '/logo/ai.webp',
   },
   backgrounds: {
     header: '/backgrounds/header.webp',
@@ -13,6 +14,7 @@ export const images = {
       xpcalc: '/backgrounds/tools/xpcalc.webp',
       techlist: '/backgrounds/tools/techlist.webp',
       timetrialhub: '/backgrounds/tools/timetrialhub.webp',
+      rebornai: '/backgrounds/tools/rebornai.webp',
     },
     games: {
       bg: '/backgrounds/games/bg.webp',

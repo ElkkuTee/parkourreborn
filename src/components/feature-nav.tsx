@@ -26,6 +26,7 @@ const features: Feature[] = [
       { title: 'Tech List', image: images.backgrounds.tools.techlist, href: '/techlist' },
       { title: 'XP Calculator', image: images.backgrounds.tools.xpcalc, href: '/xpcalc' },
       { title: 'Time Trial Hub', image: images.backgrounds.tools.timetrialhub, href: '/timetrialhub' },
+      { title: 'Reborn AI', image: images.backgrounds.tools.rebornai, href: '/rebornai' },
     ],
   },
   {

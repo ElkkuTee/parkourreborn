@@ -4,4 +4,7 @@ export default {
       { protocol: 'https', hostname: 'cdn.discordapp.com' },
     ],
   },
+  outputFileTracingIncludes: {
+    '/api/reborn-ai/chat': ['./knowledge/**/*.md'],
+  },
 };

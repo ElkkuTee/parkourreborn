@@ -7,6 +7,7 @@ const pages = [
   '/techlist',
   '/xpcalc',
   '/timetrialhub',
+  '/rebornai',
   '/parkourguessr',
   '/incrementalparkour',
   '/bagopensimulator',
