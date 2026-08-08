@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatRequestSchema, runConversation } from '@/lib/reborn-ai/conversation-manager';
 import { limits, rateLimits } from '@/lib/reborn-ai/limits';
-import { hasModelKey } from '@/lib/reborn-ai/openrouter';
+import { hasModelKey } from '@/lib/reborn-ai/provider';
 import type { ChatEvent } from '@/lib/reborn-ai/types';
 import { checkRateLimit, clientKey } from '@/lib/server/rate-limit';
 

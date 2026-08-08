@@ -3,8 +3,8 @@ import 'server-only';
 import { z } from 'zod';
 import { formatKnowledge, knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { limits } from '@/lib/reborn-ai/limits';
-import { ModelError, streamModel } from '@/lib/reborn-ai/openrouter';
-import type { ModelMessage } from '@/lib/reborn-ai/openrouter';
+import { ModelError, streamModel } from '@/lib/reborn-ai/provider';
+import type { ModelMessage } from '@/lib/reborn-ai/provider';
 import { buildSystemPrompt } from '@/lib/reborn-ai/prompt';
 import { extractFinal } from '@/lib/reborn-ai/text';
 import { createToolkit, toolDefinitions } from '@/lib/reborn-ai/tools';
@@ -28,7 +28,7 @@ const fallbackReply = 'my brain glitched there, ask me again';
 
 function modelErrorText(error: unknown) {
   if (!(error instanceof ModelError)) return fallbackReply;
-  if (error.status === 429) return 'too many people asking at once, give it a sec';
+  if (error.status === 429) return 'the model is rate limiting us, give it a bit';
   if (error.status >= 500) return 'the model is having a moment, try again';
   return 'reborn ai is not reachable right now';
 }

@@ -91,7 +91,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_time_trials',
-      description: 'Get time trials with their district, difficulty, medal times and route videos. This is the source of truth for medal times. Leave query empty to list trials.',
+      description: 'Medal times live here and nowhere else. Use this for anything about bronze, silver, gold, platinum or plat on a trial, and for a trial district or difficulty. Not for world records. Leave query empty to list trials.',
       parameters: {
         type: 'object',
         properties: {
@@ -106,7 +106,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_world_records',
-      description: 'Get current time trial world records: trial, player, time, Wasans score, submission page and video. Always use this for world record questions, never memory. Leave trial empty to get the newest records.',
+      description: 'The fastest run an actual player has submitted for a trial: player, time, Wasans score, submission page and video. Only for world record, record holder or fastest ever questions, never from memory. These are not medal times, so never use this for a bronze, silver, gold, platinum or plat question. Leave trial empty to get the newest records.',
       parameters: {
         type: 'object',
         properties: {
