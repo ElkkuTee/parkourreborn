@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { gemini } from '@/lib/reborn-ai/providers/gemini';
+import { groq } from '@/lib/reborn-ai/providers/groq';
 import { streamCompletion } from '@/lib/reborn-ai/providers/openai-compatible';
 import { openrouter } from '@/lib/reborn-ai/providers/openrouter';
 import { ModelError } from '@/lib/reborn-ai/providers/types';
@@ -10,7 +10,7 @@ import type { ToolDefinition } from '@/lib/reborn-ai/tools';
 export { ModelError } from '@/lib/reborn-ai/providers/types';
 export type { ModelMessage, ModelTurn, ToolCall } from '@/lib/reborn-ai/providers/types';
 
-const chain = [gemini, openrouter];
+const chain = [groq, openrouter];
 
 export function hasModelKey() {
   return chain.some((provider) => provider.ready());
