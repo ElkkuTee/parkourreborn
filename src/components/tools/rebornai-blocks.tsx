@@ -1,9 +1,11 @@
 'use client';
 
 import RichText from '@/components/tools/rebornai-text';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { images } from '@/lib/assets';
+import { craftingSlots } from '@/lib/pages/crafting';
 import { kindLabels, parseStep, previewKind, youtubeEmbedUrl } from '@/lib/pages/techlist';
-import type { AssistantBlock } from '@/lib/reborn-ai/types';
+import type { AssistantBlock, RecipeSlot } from '@/lib/reborn-ai/types';
 
 type BlockProps = {
   block: AssistantBlock;
@@ -101,7 +103,26 @@ function RecordBlock({ block }: { block: Extract<AssistantBlock, { type: 'world_
   );
 }
 
+function Hex({ slot, core = false }: { slot: RecipeSlot | null; core?: boolean }) {
+  const className = `ai-hex${core ? ' ai-hex--core' : ''}${slot ? '' : ' is-empty'}`;
+  if (!slot) return <span className={className} aria-hidden="true" />;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button className={className} type="button" aria-label={slot.name}>
+          <img src={slot.image} alt="" loading="lazy" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{slot.name}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function RecipeBlock({ block }: { block: Extract<AssistantBlock, { type: 'recipe' }> }) {
+  // Six slots around the core, empty ones still drawn so the grid keeps its shape.
+  const ring = Array.from({ length: craftingSlots }, (_, index) => block.slots[index] ?? null);
+
   return (
     <div className="ai-card">
       <header className="ai-card__head">
@@ -109,24 +130,21 @@ function RecipeBlock({ block }: { block: Extract<AssistantBlock, { type: 'recipe
         <strong>{block.item}</strong>
       </header>
 
-      <div className="ai-recipe">
-        <span className="ai-recipe__row ai-recipe__row--head">
-          <span>Item</span>
-          <span>Qty</span>
-        </span>
-        {block.items.map((item, index) => (
-          <span className="ai-recipe__row" key={`${item.name}-${index}`}>
-            <span>{item.name}</span>
-            <span>{item.quantity}</span>
-          </span>
-        ))}
-      </div>
-
-      {block.layout.length ? (
-        <div className="ai-layout">
-          {block.layout.map((row, index) => <span key={`${row}-${index}`}>{row}</span>)}
+      <div className="ai-hexgrid">
+        <div className="ai-hexrow">
+          <Hex slot={ring[0]} />
+          <Hex slot={ring[1]} />
         </div>
-      ) : null}
+        <div className="ai-hexrow">
+          <Hex slot={ring[2]} />
+          <Hex slot={block.middle} core />
+          <Hex slot={ring[3]} />
+        </div>
+        <div className="ai-hexrow">
+          <Hex slot={ring[4]} />
+          <Hex slot={ring[5]} />
+        </div>
+      </div>
     </div>
   );
 }

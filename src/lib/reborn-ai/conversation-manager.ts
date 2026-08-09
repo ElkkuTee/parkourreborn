@@ -43,7 +43,7 @@ export async function runConversation(request: ChatRequest, origin: string, emit
   const question = history[history.length - 1];
 
   if (!question || question.role !== 'user') {
-    emit({ type: 'error', message: 'that message did not come through' });
+    emit({ type: 'error', message: 'conversation too long, start a new conversation' });
     return;
   }
 

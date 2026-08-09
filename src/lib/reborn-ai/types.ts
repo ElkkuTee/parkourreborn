@@ -12,6 +12,11 @@ export type RecipeItem = {
   quantity: number;
 };
 
+export type RecipeSlot = {
+  name: string;
+  image: string;
+};
+
 export type AssistantBlock =
   | { type: 'text'; content: string }
   | { type: 'link'; title: string; url: string }
@@ -50,8 +55,8 @@ export type AssistantBlock =
   | {
       type: 'recipe';
       item: string;
-      items: RecipeItem[];
-      layout: string[];
+      middle: RecipeSlot;
+      slots: RecipeSlot[];
     };
 
 export type AssistantStatus = 'thinking' | 'looking' | 'writing';

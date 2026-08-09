@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
+import { findRecipe, recipeBlock } from '@/lib/reborn-ai/recipes';
+import type { Recipe } from '@/lib/reborn-ai/recipes';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
 import type { CommunityResource } from '@/lib/pages/search';
 import type { MovementEntry } from '@/lib/pages/techlist';
@@ -13,7 +15,7 @@ export type BlockContext = {
   trials: TimeTrial[];
   records: WorldRecord[];
   resources: CommunityResource[];
-  recipeText: string;
+  recipes: Recipe[];
   seenUrls: Set<string>;
 };
 
@@ -32,7 +34,6 @@ const allowedHosts = new Set([
 ]);
 
 const short = z.string().trim().min(1).max(120);
-const line = z.string().trim().min(1).max(600);
 const url = z.string().trim().min(1).max(500);
 
 export const blockInputSchema = z.discriminatedUnion('type', [
@@ -44,12 +45,7 @@ export const blockInputSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('tech'), name: short }),
   z.object({ type: z.literal('time_trial'), name: short }),
   z.object({ type: z.literal('world_record'), trial: short }),
-  z.object({
-    type: z.literal('recipe'),
-    item: short,
-    items: z.array(z.object({ name: short, quantity: z.number().int().min(1).max(999) })).min(1).max(limits.maxRecipeItems),
-    layout: z.array(line).max(6).optional(),
-  }),
+  z.object({ type: z.literal('recipe'), item: short }),
 ]);
 
 export const showSchema = z.object({
@@ -157,15 +153,8 @@ function verifyBlock(input: BlockInput, context: BlockContext): AssistantBlock |
     };
   }
 
-  const known = (value: string) => context.recipeText.includes(key(value));
-  if (!known(input.item) || !input.items.every((item) => known(item.name))) return null;
-
-  return {
-    type: 'recipe',
-    item: input.item,
-    items: input.items,
-    layout: input.layout ?? [],
-  };
+  const recipe = findRecipe(input.item, context.recipes);
+  return recipe ? recipeBlock(recipe) : null;
 }
 
 export function verifyBlocks(inputs: BlockInput[], context: BlockContext) {

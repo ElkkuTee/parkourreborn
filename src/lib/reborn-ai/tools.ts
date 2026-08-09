@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
 import { knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { showSchema, verifyBlocks } from '@/lib/reborn-ai/blocks';
+import { parseRecipes, recipeBlock } from '@/lib/reborn-ai/recipes';
+import type { Recipe } from '@/lib/reborn-ai/recipes';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
 import type { CommunityResource } from '@/lib/pages/search';
 import type { MovementEntry } from '@/lib/pages/techlist';
@@ -59,17 +61,7 @@ const blockFields = {
   alt: { type: 'string', description: 'image blocks only' },
   name: { type: 'string', description: 'tech and time_trial blocks: the exact name from the tool result' },
   trial: { type: 'string', description: 'world_record blocks: the exact trial name from the tool result' },
-  item: { type: 'string', description: 'recipe blocks: what is being crafted' },
-  items: {
-    type: 'array',
-    description: 'recipe blocks: the ingredients',
-    items: {
-      type: 'object',
-      properties: { name: { type: 'string' }, quantity: { type: 'integer' } },
-      required: ['name', 'quantity'],
-    },
-  },
-  layout: { type: 'array', description: 'recipe blocks: optional crafting grid rows', items: { type: 'string' } },
+  item: { type: 'string', description: 'recipe blocks: the exact name of the thing being crafted, like Base Glove or Climber Glove II. Nothing else, the grid and every resource in it get filled in for you' },
 };
 
 export const toolDefinitions: ToolDefinition[] = [
@@ -137,13 +129,13 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_community',
-      description: 'Search the community library for gifs, files and links. Use this for anyone\'s discord, a community doc, a meme or a clip. Hands back the real name, description and url of each one. Query is optional: leave it out and set type to browse what is there, which is how you handle "any funny gif" or "show me something cool". Searching a person or thing on its own name works better than a whole sentence.',
+      description: 'Search the community library for gifs, files and links. Use this for anyone\'s discord, a community doc, a meme or a clip. Hands back the real name, description and url of each one. Query is optional: leave it out and set type to browse what is there, which is how you handle "any funny gif" or "show me something cool". Searching a person or thing on its own name works better than a whole sentence: query olmy, not olmy discord server, because the generic words drag in everyone else\'s links too. Set limit to how many things the user actually asked for, so 1 when they asked about one person or one link.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'optional. a name or keywords. leave out to browse' },
+          query: { type: 'string', description: 'optional. a name or keywords, as few words as possible. leave out to browse' },
           type: { type: 'string', enum: ['gif', 'file', 'link'] },
-          limit: { type: 'integer', minimum: 1, maximum: limits.maxToolResultItems },
+          limit: { type: 'integer', minimum: 1, maximum: limits.maxToolResultItems, description: 'how many results you want. use 1 for one specific thing' },
         },
       },
     },
@@ -152,7 +144,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'show',
-      description: `Rarely needed. Cards for techs, trials, records, gifs and links already attach on their own after a tool runs. Only call this for a crafting recipe card, or to pick specific cards when the automatic ones would be wrong. Never call it for plain chat. Max ${limits.maxBlocks} blocks.`,
+      description: `Cards for techs, trials, records, gifs and links already attach on their own after a tool runs, so the main job of this tool is recipes. Every single time you talk about crafting something, call this with a recipe block naming what is being crafted, and it draws the crafting grid with every resource in it. One block per recipe. Otherwise only call this to pick specific cards when the automatic ones would be wrong, and never for plain chat. Max ${limits.maxBlocks} blocks.`,
       parameters: {
         type: 'object',
         properties: {
@@ -184,11 +176,17 @@ const shuffle = <T>(items: T[]) => items
   .sort((a, b) => a.order - b.order)
   .map((entry) => entry.item);
 
+function bestMatches<T>(scored: { item: T; hit: number }[]) {
+  const best = Math.max(...scored.map((entry) => entry.hit));
+  return scored.filter((entry) => entry.hit === best).map((entry) => entry.item);
+}
+
 export function createToolkit(origin: string, signal?: AbortSignal) {
   const seenUrls = new Set<string>();
   const blocks: AssistantBlock[] = [];
   const autoBlocks: AssistantBlock[] = [];
   const cache = new Map<string, Promise<unknown>>();
+  let recipes: Promise<Recipe[]> | null = null;
 
   const suggest = (found: number, make: () => AssistantBlock[]) => {
     if (found < 1 || autoBlocks.length >= limits.maxAutoBlocks) return;
@@ -241,15 +239,26 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
       }));
   });
 
-  const getCraftingText = async () => {
-    const docs = await knowledgeRetriever.docs();
-
-    return docs
-      .filter((doc) => doc.category === 'crafting')
-      .map((doc) => doc.body)
-      .join('\n')
-      .toLowerCase();
+  const getRecipes = () => {
+    if (!recipes) recipes = knowledgeRetriever.docs().then(parseRecipes).catch(() => [] as Recipe[]);
+    return recipes;
   };
+
+  // A crafting question ends up as a grid whether or not the model remembers to ask for one.
+  // Searching the same recipe under two names is normal, so the same card must not stack up.
+  async function suggestRecipes(query: string) {
+    const shown = new Set(autoBlocks.filter((block) => block.type === 'recipe').map((block) => block.item));
+
+    const scored = (await getRecipes())
+      .filter((recipe) => !shown.has(recipe.item))
+      .map((recipe) => ({ item: recipe, hit: score(recipe.item, query) }))
+      .filter((entry) => entry.hit > 0);
+
+    if (!scored.length) return;
+
+    const picked = bestMatches(scored);
+    suggest(picked.length, () => picked.map(recipeBlock));
+  }
 
   async function runKnowledge(args: z.infer<typeof schemas.search_knowledge>) {
     const found = await knowledgeRetriever.search(args.query, args.limit ?? limits.maxKnowledgeDocs);
@@ -263,6 +272,8 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
       trackKnowledgeUrls(body);
       results.push({ title: doc.title, category: doc.category, body });
     }
+
+    if (results.some((result) => result.category === 'crafting')) await suggestRecipes(args.query);
 
     return results;
   }
@@ -387,16 +398,18 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
     const { query } = args;
     const pool = resources.filter((item) => (args.type ? item.type === args.type : true));
 
-    const found = (query
+    const scored = query
       ? pool
-        .map((item) => ({ item, hit: score(`${item.name} ${item.description ?? ''}`, query) }))
+        .map((item) => ({ item, hit: score(item.name, query) * 3 + score(item.description ?? '', query) }))
         .filter((entry) => entry.hit > 0)
         .sort((a, b) => b.hit - a.hit)
-        .map((entry) => entry.item)
-      : shuffle(pool)
-    ).slice(0, args.limit ?? 6);
+      : [];
 
-    suggest(found.length, () => found.map((item) => (item.type === 'gif'
+    const found = (query ? scored.map((entry) => entry.item) : shuffle(pool)).slice(0, args.limit ?? 6);
+
+    const carded = (query ? bestMatches(scored) : found).slice(0, args.limit ?? 6);
+
+    suggest(carded.length, () => carded.map((item) => (item.type === 'gif'
       ? { type: 'gif' as const, url: item.link, title: item.name }
       : { type: 'link' as const, title: item.name, url: item.link })));
 
@@ -415,18 +428,18 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
   }
 
   async function runShow(args: z.infer<typeof schemas.show>) {
-    const [techs, trials, records, resources, recipeText] = await Promise.all([
+    const [techs, trials, records, resources, known] = await Promise.all([
       getTechs().catch(() => [] as MovementEntry[]),
       getTrials().catch(() => [] as TimeTrial[]),
       getRecords().catch(() => [] as WorldRecord[]),
       getResources().catch(() => [] as CommunityResource[]),
-      getCraftingText().catch(() => ''),
+      getRecipes(),
     ]);
 
     const room = limits.maxBlocks - blocks.length;
     if (room <= 0) return { shown: 0, dropped: args.blocks.length, note: 'block limit reached' };
 
-    const verified = verifyBlocks(args.blocks.slice(0, room), { techs, trials, records, resources, recipeText, seenUrls });
+    const verified = verifyBlocks(args.blocks.slice(0, room), { techs, trials, records, resources, recipes: known, seenUrls });
     blocks.push(...verified.blocks);
 
     return {

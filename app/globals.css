@@ -3979,60 +3979,75 @@ button {
   letter-spacing: 0.09em;
 }
 
-.ai-recipe {
+.ai-hexgrid {
+  --hex-w: 72px;
+  --hex-h: calc(var(--hex-w) * 1.1547);
+  --hex-gap: 7px;
   display: grid;
-  overflow: hidden;
-  border: 1px solid var(--hub-border-soft);
-  border-radius: 3px;
-}
-
-.ai-recipe__row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px;
-  gap: 10px;
-  padding: 9px 11px;
-  background: var(--hub-field-bg);
-  color: var(--hub-text-soft);
-  font-size: 14px;
-}
-
-.ai-recipe__row + .ai-recipe__row {
-  border-top: 1px solid var(--hub-border-soft);
-}
-
-.ai-recipe__row > span:last-child {
-  text-align: right;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.ai-recipe__row--head {
-  background: var(--hub-control-bg);
-  color: var(--hub-muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-}
-
-.ai-recipe__row--head > span:last-child {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-}
-
-.ai-layout {
-  display: grid;
-  gap: 5px;
-  padding: 11px;
+  justify-items: center;
+  padding: 15px 10px;
   border: 1px solid var(--hub-border-soft);
   border-radius: 3px;
   background: var(--hub-field-bg);
-  color: var(--hub-muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  line-height: 1.5;
+}
+
+.ai-hexrow {
+  display: flex;
+  gap: var(--hex-gap);
+}
+
+.ai-hexrow + .ai-hexrow {
+  margin-top: calc(var(--hex-gap) - (var(--hex-h) / 4));
+}
+
+.ai-hex {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--hex-w);
+  height: var(--hex-h);
+  padding: 0;
+  border: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--hub-accent-line);
+  cursor: default;
+  transition: background 160ms ease;
+}
+
+.ai-hex::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  clip-path: inherit;
+  background: var(--hub-bg-soft);
+}
+
+.ai-hex.is-empty {
+  background: var(--hub-accent-line-soft);
+}
+
+.ai-hex--core {
+  background: var(--hub-muted-soft);
+}
+
+.ai-hex img {
+  position: relative;
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+button.ai-hex:hover {
+  background: var(--hub-accent-line-strong);
+}
+
+button.ai-hex--core:hover {
+  background: var(--hub-text-soft);
+}
+
+button.ai-hex:focus-visible {
+  outline: none;
+  background: var(--hub-focus);
 }
 
 @media (max-width: 1040px) {
@@ -4239,6 +4254,10 @@ button {
 
   .ai-medals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ai-hexgrid {
+    --hex-w: 60px;
   }
 
   .ai-wr strong {
