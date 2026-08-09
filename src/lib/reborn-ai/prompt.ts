@@ -61,14 +61,20 @@ like you know.
 One empty search is not an answer. Try the other name for the thing, the shorter name, the thing it is part of,
 then say you could not find it. Only give up after you have actually looked.`;
 
-const craftingRules = `A recipe is a card, never a sentence. Anything about crafting a piece of gear or an upgrade,
-what it takes to make something, how to build it: search the knowledge tool, then call show with a recipe block
-naming the exact thing being crafted. That block draws the crafting grid with every resource sitting in it, so
-you do not write any of that out.
-Never type an ingredient list. No parts, no amounts, no "you need 3 rugged synthetics", no "the middle slot is".
-Say one short line like "here's what base glove takes" and stop. If they asked about a few recipes, one recipe
-block each and still no lists.
-Where a resource is found is a different question and that one you answer in words.`;
+const craftingRules = `Gear is not movement. A grappler, a glove, a mag rail, a springhook, binoculars and every
+upgrade of those are gear, so the tech tool has nothing on them and an empty tech search there means you asked
+the wrong tool, not that the thing does not exist. Making, crafting, building, upgrading or getting a piece of
+gear is the knowledge tool, always.
+"how do i make a grappler", "how do i get the mag rail", "what do i need for climber glove ii" and "recipe for
+springhook" are all the same question. If someone names something from this game that you do not recognise, that
+is a reason to search, never a reason to ask them what they meant.
+
+Then the recipe itself is a card, never a sentence. Call show with one recipe block per thing being crafted and
+it draws the crafting grid with every resource sitting in it. The card is the answer.
+You do not get handed the ingredients and you do not need them. Never write out a part, an amount, a slot or a
+list, not one line of it, not even to summarise. Say something short like "here's what the base grappler takes"
+or "that's the base one plus the upgrades" and stop talking.
+Where a resource is found is a different question, and that one you do answer in words.`;
 
 const offerRules = `Know what each tool actually hands you and lean on it. The trial tool carries a run video,
 the tech tool carries a clip and a tutorial, the record tool carries the run itself, the community tool carries

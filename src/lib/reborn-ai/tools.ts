@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
 import { knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { showSchema, verifyBlocks } from '@/lib/reborn-ai/blocks';
-import { parseRecipes, recipeBlock } from '@/lib/reborn-ai/recipes';
+import { hideRecipes, parseRecipes, recipeBlock } from '@/lib/reborn-ai/recipes';
 import type { Recipe } from '@/lib/reborn-ai/recipes';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
 import type { CommunityResource } from '@/lib/pages/search';
@@ -69,7 +69,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_knowledge',
-      description: 'Everything you know about Parkour Reborn: crafting recipes and where resources come from, gear, districts and locations, missions, npcs, progression, cosmetics, easter eggs, rules and how systems work. Hands back the full text of every page that matches, so whatever it returns is the answer. Search this for any game question that is not a tech, a time trial, a world record or a community link. Search it again with different wording before you ever say you do not know.',
+      description: 'Everything you know about Parkour Reborn: crafting recipes and where resources come from, gear, districts and locations, missions, npcs, progression, cosmetics, easter eggs, rules and how systems work. Hands back the full text of every page that matches, so whatever it returns is the answer. Search this for any game question that is not a tech, a time trial, a world record or a community link. Every question about making, crafting, building, upgrading or getting a piece of gear lands here, so "how do i make a grappler", "how do i get the mag rail" and "recipe for climber glove ii" are all this tool. Search it again with different wording before you ever say you do not know.',
       parameters: {
         type: 'object',
         properties: {
@@ -84,7 +84,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_techs',
-      description: `Search the tech list for techs, concepts and basics. Matches names, aliases and steps. Use this for anything about how a specific movement is performed, what it is called, or what it chains from. Hands back the full step list, the other names it goes by, a clip of the tech being done and a tutorial link, so this answers "how do i do x" completely. ${stepNotation}`,
+      description: `Search the tech list for techs, concepts and basics. Matches names, aliases and steps. Use this for anything about how a specific movement is performed, what it is called, or what it chains from. Hands back the full step list, the other names it goes by, a clip of the tech being done and a tutorial link, so this answers "how do i do x" completely. Movement only: gear like a grappler, glove, mag rail or springhook is not a tech, and making or getting one is the knowledge tool. ${stepNotation}`,
       parameters: {
         type: 'object',
         properties: {
@@ -267,7 +267,8 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
 
     for (const { doc } of found) {
       if (left <= 0) break;
-      const body = doc.body.length > left ? `${doc.body.slice(0, left)}...` : doc.body;
+      const text = doc.category === 'crafting' ? hideRecipes(doc.body) : doc.body;
+      const body = text.length > left ? `${text.slice(0, left)}...` : text;
       left -= body.length;
       trackKnowledgeUrls(body);
       results.push({ title: doc.title, category: doc.category, body });

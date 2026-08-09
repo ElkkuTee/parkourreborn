@@ -77,6 +77,48 @@ export function parseRecipes(docs: KnowledgeDoc[]) {
     .flatMap((doc) => parseDoc(doc.body));
 }
 
+export function hideRecipes(body: string) {
+  const lines: string[] = [];
+  let item = '';
+  let inside = false;
+  let noted = false;
+
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    const head = line.match(heading);
+
+    if (head) {
+      item = head[1].trim();
+      inside = false;
+      lines.push(raw);
+      continue;
+    }
+
+    if (/^recipe:?$/i.test(line)) {
+      inside = true;
+      noted = false;
+      continue;
+    }
+
+    if (!inside || !line) {
+      lines.push(raw);
+      continue;
+    }
+
+    if (!bullet.test(line)) {
+      inside = false;
+      lines.push(raw);
+      continue;
+    }
+
+    if (noted) continue;
+    noted = true;
+    lines.push(`Recipe: withheld on purpose. Call show with a recipe block for "${item}" and the grid card lays it out. Never guess at or describe what goes in it.`);
+  }
+
+  return lines.join('\n');
+}
+
 export function findRecipe(name: string, recipes: Recipe[]) {
   const search = matchKey(name);
   if (!search) return null;
