@@ -80,4 +80,5 @@ export type KnowledgeResult = {
 
 export interface KnowledgeRetriever {
   search(query: string, limit?: number): Promise<KnowledgeResult[]>;
+  docs(): Promise<KnowledgeDoc[]>;
 }

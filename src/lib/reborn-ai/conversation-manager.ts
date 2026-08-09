@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { z } from 'zod';
-import { formatKnowledge, knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { limits } from '@/lib/reborn-ai/limits';
 import { ModelError, streamModel } from '@/lib/reborn-ai/openrouter';
 import type { ModelMessage } from '@/lib/reborn-ai/openrouter';
@@ -48,15 +47,10 @@ export async function runConversation(request: ChatRequest, origin: string, emit
     return;
   }
 
-  emit({ type: 'status', state: 'looking' });
-
   const toolkit = createToolkit(origin, signal);
-  const found = await knowledgeRetriever.search(question.content).catch(() => []);
-  const knowledge = formatKnowledge(found);
-  toolkit.trackKnowledgeUrls(knowledge);
 
   const messages: ModelMessage[] = [
-    { role: 'system', content: buildSystemPrompt(knowledge) },
+    { role: 'system', content: buildSystemPrompt() },
     ...history.map((message) => ({ role: message.role, content: message.content } as ModelMessage)),
   ];
 

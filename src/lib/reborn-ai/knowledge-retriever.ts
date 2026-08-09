@@ -114,13 +114,20 @@ function tokenize(query: string) {
   )).slice(0, 8);
 }
 
+const haystack = (doc: KnowledgeDoc) => `${doc.title} ${doc.aliases.join(' ')} ${doc.tags.join(' ')} ${doc.body}`.toLowerCase();
+
+type Index = {
+  fuse: Fuse<KnowledgeDoc>;
+  docs: KnowledgeDoc[];
+};
+
 class LocalKnowledgeRetriever implements KnowledgeRetriever {
-  private cache: Promise<Fuse<KnowledgeDoc>> | null = null;
+  private cache: Promise<Index> | null = null;
 
   private index() {
     if (!this.cache) {
       this.cache = loadDocs()
-        .then((docs) => new Fuse(docs, fuseOptions))
+        .then((docs) => ({ fuse: new Fuse(docs, fuseOptions), docs }))
         .catch((error) => {
           this.cache = null;
           throw error;
@@ -130,17 +137,27 @@ class LocalKnowledgeRetriever implements KnowledgeRetriever {
     return this.cache;
   }
 
+  async docs(): Promise<KnowledgeDoc[]> {
+    try {
+      return (await this.index()).docs;
+    } catch {
+      return [];
+    }
+  }
+
   async search(query: string, limit = limits.maxKnowledgeDocs): Promise<KnowledgeResult[]> {
     const clean = query.trim();
     if (!clean) return [];
 
-    let fuse: Fuse<KnowledgeDoc>;
+    let index: Index;
     try {
-      fuse = await this.index();
+      index = await this.index();
     } catch {
       return [];
     }
 
+    const { fuse } = index;
+    const tokens = tokenize(clean);
     const weights = new Map<string, { doc: KnowledgeDoc; score: number }>();
 
     const collect = (results: ReturnType<typeof fuse.search>, boost: number) => {
@@ -152,7 +169,17 @@ class LocalKnowledgeRetriever implements KnowledgeRetriever {
     };
 
     collect(fuse.search(clean, { limit: limit * 3 }), 1.5);
-    for (const token of tokenize(clean)) collect(fuse.search(token, { limit: limit * 3 }), 1);
+    for (const token of tokens) collect(fuse.search(token, { limit: limit * 3 }), 1);
+
+    for (const doc of index.docs) {
+      const hay = haystack(doc);
+      const exact = tokens.filter((token) => hay.includes(token)).length;
+      if (!exact) continue;
+
+      const hit = weights.get(doc.id) ?? { doc, score: 0 };
+      hit.score += exact * 0.8;
+      weights.set(doc.id, hit);
+    }
 
     return Array.from(weights.values())
       .sort((a, b) => b.score - a.score)
@@ -162,17 +189,3 @@ class LocalKnowledgeRetriever implements KnowledgeRetriever {
 }
 
 export const knowledgeRetriever: KnowledgeRetriever = new LocalKnowledgeRetriever();
-
-export function formatKnowledge(results: KnowledgeResult[]) {
-  let left = limits.maxKnowledgeChars;
-
-  return results
-    .map(({ doc }) => {
-      if (left <= 0) return '';
-      const body = doc.body.length > left ? `${doc.body.slice(0, left)}...` : doc.body;
-      left -= body.length;
-      return `## ${doc.title}\n${body}`;
-    })
-    .filter(Boolean)
-    .join('\n\n');
-}

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
+import { knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { showSchema, verifyBlocks } from '@/lib/reborn-ai/blocks';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
 import type { CommunityResource } from '@/lib/pages/search';
@@ -40,6 +41,7 @@ const count = z.number().int().min(1).max(limits.maxToolResultItems).optional();
 const term = z.string().trim().min(1).max(80);
 
 const schemas = {
+  search_knowledge: z.object({ query: term, limit: count }),
   search_techs: z.object({ query: term, kind: z.enum(['tech', 'concept', 'basic']).optional(), limit: count }),
   get_time_trials: z.object({ query: term.optional(), district: term.optional(), limit: count }),
   get_world_records: z.object({ trial: term.optional(), limit: count }),
@@ -71,6 +73,21 @@ const blockFields = {
 };
 
 export const toolDefinitions: ToolDefinition[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'search_knowledge',
+      description: 'Everything you know about Parkour Reborn: crafting recipes and where resources come from, gear, districts and locations, missions, npcs, progression, cosmetics, easter eggs, rules and how systems work. Search this for any game question that is not a tech, a time trial, a world record or a community link. Search it again with different wording before you ever say you do not know.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'plain keywords, the name of the thing you want' },
+          limit: { type: 'integer', minimum: 1, maximum: limits.maxToolResultItems },
+        },
+        required: ['query'],
+      },
+    },
+  },
   {
     type: 'function',
     function: {
@@ -162,12 +179,16 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
   const cache = new Map<string, Promise<unknown>>();
 
   const suggest = (found: number, make: () => AssistantBlock[]) => {
-    if (found < 1 || found > 2 || autoBlocks.length >= limits.maxAutoBlocks) return;
+    if (found < 1 || autoBlocks.length >= limits.maxAutoBlocks) return;
     autoBlocks.push(...make().slice(0, limits.maxAutoBlocks - autoBlocks.length));
   };
 
   const track = (...urls: (string | undefined)[]) => {
     for (const url of urls) if (url) seenUrls.add(url);
+  };
+
+  const trackKnowledgeUrls = (text: string) => {
+    for (const match of text.matchAll(/https?:\/\/[^\s)>\]]+/g)) seenUrls.add(match[0]);
   };
 
   async function load<T>(path: string, pick: (data: unknown) => T): Promise<T> {
@@ -207,6 +228,32 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
         playerScore: typeof item.player_score === 'number' ? item.player_score : null,
       }));
   });
+
+  const getCraftingText = async () => {
+    const docs = await knowledgeRetriever.docs();
+
+    return docs
+      .filter((doc) => doc.category === 'crafting')
+      .map((doc) => doc.body)
+      .join('\n')
+      .toLowerCase();
+  };
+
+  async function runKnowledge(args: z.infer<typeof schemas.search_knowledge>) {
+    const found = await knowledgeRetriever.search(args.query, args.limit ?? limits.maxKnowledgeDocs);
+    const results: { title: string; category: string; body: string }[] = [];
+    let left = limits.maxKnowledgeChars;
+
+    for (const { doc } of found) {
+      if (left <= 0) break;
+      const body = doc.body.length > left ? `${doc.body.slice(0, left)}...` : doc.body;
+      left -= body.length;
+      trackKnowledgeUrls(body);
+      results.push({ title: doc.title, category: doc.category, body });
+    }
+
+    return results;
+  }
 
   async function runTechs(args: z.infer<typeof schemas.search_techs>) {
     const entries = await getTechs();
@@ -334,17 +381,18 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
   }
 
   async function runShow(args: z.infer<typeof schemas.show>) {
-    const [techs, trials, records, resources] = await Promise.all([
+    const [techs, trials, records, resources, recipeText] = await Promise.all([
       getTechs().catch(() => [] as MovementEntry[]),
       getTrials().catch(() => [] as TimeTrial[]),
       getRecords().catch(() => [] as WorldRecord[]),
       getResources().catch(() => [] as CommunityResource[]),
+      getCraftingText().catch(() => ''),
     ]);
 
     const room = limits.maxBlocks - blocks.length;
     if (room <= 0) return { shown: 0, dropped: args.blocks.length, note: 'block limit reached' };
 
-    const verified = verifyBlocks(args.blocks.slice(0, room), { techs, trials, records, resources, seenUrls });
+    const verified = verifyBlocks(args.blocks.slice(0, room), { techs, trials, records, resources, recipeText, seenUrls });
     blocks.push(...verified.blocks);
 
     return {
@@ -355,6 +403,7 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
   }
 
   async function execute(name: string, args: unknown) {
+    if (name === 'search_knowledge') return runKnowledge(schemas.search_knowledge.parse(args));
     if (name === 'search_techs') return runTechs(schemas.search_techs.parse(args));
     if (name === 'get_time_trials') return runTrials(schemas.get_time_trials.parse(args));
     if (name === 'get_world_records') return runRecords(schemas.get_world_records.parse(args));
@@ -367,9 +416,6 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
     blocks,
     autoBlocks,
     seenUrls,
-    trackKnowledgeUrls(text: string) {
-      for (const match of text.matchAll(/https?:\/\/[^\s)>\]]+/g)) seenUrls.add(match[0]);
-    },
     async run(name: string, raw: string): Promise<string> {
       let args: unknown;
 

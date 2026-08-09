@@ -9,6 +9,7 @@ tags:
   - npcs
   - vendor
   - dirwik
+  - baddie
 ---
 
 Petra is a Dirwik vendor.

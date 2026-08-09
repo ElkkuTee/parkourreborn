@@ -7,9 +7,9 @@ export const limits = {
   maxModelRetries: 3,
   maxToolCallsPerRound: 4,
   maxKnowledgeDocs: 6,
-  maxKnowledgeChars: 16000,
+  maxKnowledgeChars: 25000,
   maxToolResultItems: 8,
-  maxOutputTokens: 6000,
+  maxOutputTokens: 8000,
   maxAutoBlocks: 3,
   maxBlocks: 6,
   maxRecipeItems: 12,
@@ -18,6 +18,6 @@ export const limits = {
 } as const;
 
 export const rateLimits = {
-  perMinute: 10,
-  perHour: 120,
+  perMinute: 8,
+  perHour: 60,
 } as const;

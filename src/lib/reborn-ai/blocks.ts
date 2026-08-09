@@ -13,6 +13,7 @@ export type BlockContext = {
   trials: TimeTrial[];
   records: WorldRecord[];
   resources: CommunityResource[];
+  recipeText: string;
   seenUrls: Set<string>;
 };
 
@@ -155,6 +156,9 @@ function verifyBlock(input: BlockInput, context: BlockContext): AssistantBlock |
       videoUrl: wrVideoURL(record.submissionUuid),
     };
   }
+
+  const known = (value: string) => context.recipeText.includes(key(value));
+  if (!known(input.item) || !input.items.every((item) => known(item.name))) return null;
 
   return {
     type: 'recipe',

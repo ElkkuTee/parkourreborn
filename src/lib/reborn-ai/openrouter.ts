@@ -41,7 +41,7 @@ export class ModelError extends Error {
 }
 
 export function modelName() {
-  return process.env.OPENROUTER_MODEL?.trim() || fallbackModel;
+  return process.env.OPENROUTER_MODEL?.trim() || fallbackModel; // OPENROUTER_MODEL in env is "openai/gpt-oss-20b:free"
 }
 
 export function hasModelKey() {
