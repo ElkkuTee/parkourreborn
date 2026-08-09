@@ -45,7 +45,7 @@ const schemas = {
   search_techs: z.object({ query: term, kind: z.enum(['tech', 'concept', 'basic']).optional(), limit: count }),
   get_time_trials: z.object({ query: term.optional(), district: term.optional(), limit: count }),
   get_world_records: z.object({ trial: term.optional(), limit: count }),
-  search_community: z.object({ query: term, type: z.enum(['gif', 'file', 'link']).optional(), limit: count }),
+  search_community: z.object({ query: term.optional(), type: z.enum(['gif', 'file', 'link']).optional(), limit: count }),
   show: showSchema,
 };
 
@@ -77,7 +77,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_knowledge',
-      description: 'Everything you know about Parkour Reborn: crafting recipes and where resources come from, gear, districts and locations, missions, npcs, progression, cosmetics, easter eggs, rules and how systems work. Search this for any game question that is not a tech, a time trial, a world record or a community link. Search it again with different wording before you ever say you do not know.',
+      description: 'Everything you know about Parkour Reborn: crafting recipes and where resources come from, gear, districts and locations, missions, npcs, progression, cosmetics, easter eggs, rules and how systems work. Hands back the full text of every page that matches, so whatever it returns is the answer. Search this for any game question that is not a tech, a time trial, a world record or a community link. Search it again with different wording before you ever say you do not know.',
       parameters: {
         type: 'object',
         properties: {
@@ -92,7 +92,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_techs',
-      description: `Search the tech list for techs, concepts and basics. Matches names, aliases and steps. Use this for anything about how a specific movement is performed, what it is called, or what it chains from. ${stepNotation}`,
+      description: `Search the tech list for techs, concepts and basics. Matches names, aliases and steps. Use this for anything about how a specific movement is performed, what it is called, or what it chains from. Hands back the full step list, the other names it goes by, a clip of the tech being done and a tutorial link, so this answers "how do i do x" completely. ${stepNotation}`,
       parameters: {
         type: 'object',
         properties: {
@@ -108,7 +108,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_time_trials',
-      description: 'Medal times live here and nowhere else. Use this for anything about bronze, silver, gold, platinum or plat on a trial, and for a trial district or difficulty. Not for world records. Leave query empty to list trials.',
+      description: 'Medal times live here and nowhere else. Use this for anything about bronze, silver, gold, platinum or plat on a trial, and for a trial district or difficulty. Hands back all four medal times, the district, the difficulty and a video of someone running the whole trial, so this is also how you answer a route question or "how do i clear x". Not for world records. Leave query empty to list trials.',
       parameters: {
         type: 'object',
         properties: {
@@ -123,7 +123,7 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'get_world_records',
-      description: 'The fastest run an actual player has submitted for a trial: player, time, Wasans score, submission page and video. Only for world record, record holder or fastest ever questions, never from memory. These are not medal times, so never use this for a bronze, silver, gold, platinum or plat question. Leave trial empty to get the newest records.',
+      description: 'The fastest run an actual player has submitted for a trial. Hands back the holder, the time, the Wasans score, the submission page and a video of the record run itself. Only for world record, record holder or fastest ever questions, never from memory. These are not medal times, so never use this for a bronze, silver, gold, platinum or plat question. Leave trial empty to get the newest records.',
       parameters: {
         type: 'object',
         properties: {
@@ -137,15 +137,14 @@ export const toolDefinitions: ToolDefinition[] = [
     type: 'function',
     function: {
       name: 'search_community',
-      description: 'Search the community library for gifs, files and links. Use this when someone wants a gif, a document or a community link. Returns real urls you can pass to show.',
+      description: 'Search the community library for gifs, files and links. Use this for anyone\'s discord, a community doc, a meme or a clip. Hands back the real name, description and url of each one. Query is optional: leave it out and set type to browse what is there, which is how you handle "any funny gif" or "show me something cool". Searching a person or thing on its own name works better than a whole sentence.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string' },
+          query: { type: 'string', description: 'optional. a name or keywords. leave out to browse' },
           type: { type: 'string', enum: ['gif', 'file', 'link'] },
           limit: { type: 'integer', minimum: 1, maximum: limits.maxToolResultItems },
         },
-        required: ['query'],
       },
     },
   },
@@ -170,7 +169,20 @@ export const toolDefinitions: ToolDefinition[] = [
 ];
 
 const key = (value: string) => value.trim().toLowerCase();
-const matches = (value: string, search: string) => key(value).includes(key(search));
+const words = (value: string) => key(value).split(/[^a-z0-9]+/).filter((word) => word.length > 2);
+
+function score(value: string, search: string) {
+  const hay = key(value);
+  if (!hay) return 0;
+  if (hay.includes(key(search))) return 100;
+
+  return words(search).filter((word) => hay.includes(word)).length;
+}
+
+const shuffle = <T>(items: T[]) => items
+  .map((item) => ({ item, order: Math.random() }))
+  .sort((a, b) => a.order - b.order)
+  .map((entry) => entry.item);
 
 export function createToolkit(origin: string, signal?: AbortSignal) {
   const seenUrls = new Set<string>();
@@ -285,9 +297,17 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
 
   async function runTrials(args: z.infer<typeof schemas.get_time_trials>) {
     const trials = await getTrials();
+    const { query, district } = args;
+
     const found = trials
-      .filter((trial) => (args.query ? matches(trial.name, args.query) : true))
-      .filter((trial) => (args.district ? matches(trial.district, args.district) : true))
+      .map((trial) => ({
+        trial,
+        hit: (query ? score(trial.name, query) : 0) + (district ? score(trial.district, district) : 0),
+      }))
+      .filter((entry) => (query ? score(entry.trial.name, query) > 0 : true))
+      .filter((entry) => (district ? score(entry.trial.district, district) > 0 : true))
+      .sort((a, b) => b.hit - a.hit)
+      .map((entry) => entry.trial)
       .slice(0, args.limit ?? 6);
 
     suggest(found.length, () => found.map((trial) => ({
@@ -322,9 +342,16 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
 
   async function runRecords(args: z.infer<typeof schemas.get_world_records>) {
     const records = await getRecords();
-    const found = records
-      .filter((record) => (args.trial ? matches(record.trialName, args.trial) : true))
-      .slice(0, args.limit ?? 6);
+    const { trial } = args;
+
+    const found = (trial
+      ? records
+        .map((record) => ({ record, hit: score(record.trialName, trial) }))
+        .filter((entry) => entry.hit > 0)
+        .sort((a, b) => b.hit - a.hit)
+        .map((entry) => entry.record)
+      : records
+    ).slice(0, args.limit ?? 6);
 
     suggest(found.length, () => found.map((record) => ({
       type: 'world_record',
@@ -357,10 +384,17 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
 
   async function runCommunity(args: z.infer<typeof schemas.search_community>) {
     const resources = await getResources();
-    const found = resources
-      .filter((item) => (args.type ? item.type === args.type : true))
-      .filter((item) => matches(item.name, args.query) || matches(item.description ?? '', args.query))
-      .slice(0, args.limit ?? 6);
+    const { query } = args;
+    const pool = resources.filter((item) => (args.type ? item.type === args.type : true));
+
+    const found = (query
+      ? pool
+        .map((item) => ({ item, hit: score(`${item.name} ${item.description ?? ''}`, query) }))
+        .filter((entry) => entry.hit > 0)
+        .sort((a, b) => b.hit - a.hit)
+        .map((entry) => entry.item)
+      : shuffle(pool)
+    ).slice(0, args.limit ?? 6);
 
     suggest(found.length, () => found.map((item) => (item.type === 'gif'
       ? { type: 'gif' as const, url: item.link, title: item.name }
