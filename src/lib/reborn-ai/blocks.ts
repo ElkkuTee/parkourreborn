@@ -3,7 +3,6 @@ import { limits } from '@/lib/reborn-ai/limits';
 import { findRecipe, recipeBlock } from '@/lib/reborn-ai/recipes';
 import type { Recipe } from '@/lib/reborn-ai/recipes';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
-import type { CommunityResource } from '@/lib/pages/search';
 import type { MovementEntry } from '@/lib/pages/techlist';
 import type { TimeTrial, WorldRecord } from '@/lib/pages/timetrials';
 import { wrVideoURL } from '@/lib/pages/timetrials';
@@ -14,7 +13,6 @@ export type BlockContext = {
   techs: MovementEntry[];
   trials: TimeTrial[];
   records: WorldRecord[];
-  resources: CommunityResource[];
   recipes: Recipe[];
   seenUrls: Set<string>;
 };

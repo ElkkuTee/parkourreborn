@@ -2,7 +2,7 @@ export const limits = {
   maxBodyBytes: 64 * 1024,
   maxHistory: 10,
   maxMessageChars: 1400,
-  maxToolRounds: 9,
+  maxToolRounds: 14,
   maxEmptyRetries: 2,
   maxModelRetries: 3,
   maxToolCallsPerRound: 6,
@@ -13,7 +13,12 @@ export const limits = {
   maxAutoBlocks: 9,
   maxBlocks: 9,
   toolTimeoutMs: 12000,
-  modelTimeoutMs: 60000,
+  turnBudgetMs: 280000,
+  wrapUpMs: 45000,
+  modelConnectMs: 30000,
+  modelIdleMs: 45000,
+  heartbeatMs: 10000,
+  dataCacheMs: 60000,
 } as const;
 
 export const rateLimits = {

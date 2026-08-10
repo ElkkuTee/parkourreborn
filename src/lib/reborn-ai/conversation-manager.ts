@@ -3,7 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
 import { ModelError, streamModel } from '@/lib/reborn-ai/openrouter';
-import type { ModelMessage } from '@/lib/reborn-ai/openrouter';
+import type { ModelMessage, ToolCall } from '@/lib/reborn-ai/openrouter';
 import { buildSystemPrompt } from '@/lib/reborn-ai/prompt';
 import { extractFinal } from '@/lib/reborn-ai/text';
 import { createToolkit, toolDefinitions } from '@/lib/reborn-ai/tools';
@@ -47,7 +47,7 @@ export async function runConversation(request: ChatRequest, origin: string, emit
     return;
   }
 
-  const toolkit = createToolkit(origin, signal);
+  const toolkit = createToolkit(origin);
 
   const messages: ModelMessage[] = [
     { role: 'system', content: buildSystemPrompt() },
@@ -55,6 +55,9 @@ export async function runConversation(request: ChatRequest, origin: string, emit
   ];
 
   emit({ type: 'status', state: 'thinking' });
+
+  const started = Date.now();
+  const left = () => limits.turnBudgetMs - (Date.now() - started);
 
   let wrote = false;
 
@@ -88,8 +91,27 @@ export async function runConversation(request: ChatRequest, origin: string, emit
     return { turn, shown };
   };
 
+  // Tools that read data run together, then show runs, because show only trusts
+  // urls the other tools already handed over in this same turn.
+  const runTools = async (calls: ToolCall[]) => {
+    const outputs = new Map<string, string>();
+    const isShow = (call: ToolCall) => call.function.name === 'show';
+
+    await Promise.all(calls.filter((call) => !isShow(call)).map(async (call) => {
+      outputs.set(call.id, await toolkit.run(call.function.name, call.function.arguments));
+    }));
+
+    for (const call of calls.filter(isShow)) {
+      outputs.set(call.id, await toolkit.run(call.function.name, call.function.arguments));
+    }
+
+    return outputs;
+  };
+
   try {
     while (rounds < limits.maxToolRounds) {
+      if (left() < limits.wrapUpMs) break;
+
       rounds += 1;
       const { turn, shown } = await runTurn(toolDefinitions);
       const roundText = shown;
@@ -105,7 +127,7 @@ export async function runConversation(request: ChatRequest, origin: string, emit
 
       const onlyShow = calls.every((call) => call.function.name === 'show');
       if (onlyShow && roundText.trim()) {
-        for (const call of calls) await toolkit.run(call.function.name, call.function.arguments);
+        await runTools(calls);
         break;
       }
 
@@ -117,12 +139,14 @@ export async function runConversation(request: ChatRequest, origin: string, emit
       emit({ type: 'status', state: 'looking' });
       messages.push({ role: 'assistant', content: extractFinal(turn.content), tool_calls: calls });
 
+      const outputs = await runTools(calls);
+
       for (const call of calls) {
         messages.push({
           role: 'tool',
           tool_call_id: call.id,
           name: call.function.name,
-          content: await toolkit.run(call.function.name, call.function.arguments),
+          content: outputs.get(call.id) ?? JSON.stringify({ error: 'tool did not answer' }),
         });
       }
 
@@ -134,13 +158,10 @@ export async function runConversation(request: ChatRequest, origin: string, emit
       await runTurn([]);
     }
   } catch (error) {
-    if (wrote) {
-      emit({ type: 'done' });
+    if (!wrote) {
+      emit({ type: 'error', message: modelErrorText(error) });
       return;
     }
-
-    emit({ type: 'error', message: modelErrorText(error) });
-    return;
   }
 
   const blocks = toolkit.blocks.length ? toolkit.blocks : toolkit.autoBlocks;

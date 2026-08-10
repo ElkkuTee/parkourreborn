@@ -7,7 +7,7 @@ import { checkRateLimit, clientKey } from '@/lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const windows = [
   { seconds: 60, max: rateLimits.perMinute },
@@ -55,21 +55,28 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       let open = true;
 
-      const emit = (event: ChatEvent) => {
+      const send = (chunk: string) => {
         if (!open) return;
 
         try {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          controller.enqueue(encoder.encode(chunk));
         } catch {
           open = false;
         }
       };
+
+      const emit = (event: ChatEvent) => send(`data: ${JSON.stringify(event)}\n\n`);
+
+      // A quiet model means zero bytes on the wire, which reads as a dead connection
+      // to every proxy in between. Comment lines keep it alive and the client ignores them.
+      const beat = setInterval(() => send(': ping\n\n'), limits.heartbeatMs);
 
       try {
         await runConversation(parsed.data, origin, emit, request.signal);
       } catch {
         emit({ type: 'error', message: 'reborn ai broke, try again' });
       } finally {
+        clearInterval(beat);
         const wasOpen = open;
         open = false;
         if (wasOpen) controller.close();

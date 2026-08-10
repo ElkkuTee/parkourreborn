@@ -40,8 +40,12 @@ export class ModelError extends Error {
   }
 }
 
-export function modelName() {
-  return process.env.OPENROUTER_MODEL?.trim() || fallbackModel; // OPENROUTER_MODEL in env is "openai/gpt-oss-20b:free"
+// OPENROUTER_MODELS takes a comma separated list. The first one is the pick, the rest
+// are what openrouter falls back to when a free model is queued or throws a 429.
+export function modelNames() {
+  const raw = process.env.OPENROUTER_MODELS?.trim() || process.env.OPENROUTER_MODEL?.trim() || '';
+  const names = raw.split(',').map((name) => name.trim()).filter(Boolean);
+  return names.length ? names : [fallbackModel];
 }
 
 export function hasModelKey() {
@@ -82,47 +86,116 @@ const retryable = new Set([408, 409, 429, 500, 502, 503, 504]);
 
 function wait(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timer);
+    if (signal?.aborted) {
       reject(new ModelError('aborted'));
-    }, { once: true });
+      return;
+    }
+
+    const clean = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', bail);
+    };
+
+    const bail = () => {
+      clean();
+      reject(new ModelError('aborted'));
+    };
+
+    const timer = setTimeout(() => {
+      clean();
+      resolve();
+    }, ms);
+
+    signal?.addEventListener('abort', bail, { once: true });
   });
 }
 
-function backoff(response: Response, attempt: number) {
-  const header = Number(response.headers.get('retry-after'));
-  if (Number.isFinite(header) && header > 0) return Math.min(header * 1000, 8000);
+function backoff(attempt: number, retryAfter?: string | null) {
+  const header = Number(retryAfter);
+  if (Number.isFinite(header) && header > 0) return Math.min(header * 1000, 15000);
   return Math.min(800 * 2 ** attempt, 6000) + Math.floor(Math.random() * 300);
 }
 
+// The model is allowed to take as long as it likes, it just has to keep talking.
+// Anything that goes quiet for modelIdleMs is dead, and a healthy slow stream is never cut off.
+function watchdog(span: number, signal?: AbortSignal) {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const clear = () => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+  };
+
+  const relay = () => {
+    clear();
+    controller.abort(signal?.reason);
+  };
+
+  const bump = (next: number) => {
+    clear();
+    timer = setTimeout(() => controller.abort(new ModelError('model went quiet')), next);
+  };
+
+  const stop = () => {
+    clear();
+    signal?.removeEventListener('abort', relay);
+  };
+
+  if (signal?.aborted) relay();
+  else signal?.addEventListener('abort', relay, { once: true });
+
+  bump(span);
+  return { signal: controller.signal, bump, stop };
+}
+
+function asModelError(error: unknown) {
+  if (error instanceof ModelError) return error;
+  return new ModelError(error instanceof Error ? error.message : 'model call failed');
+}
+
 async function openStream(messages: ModelMessage[], tools: ToolDefinition[], signal?: AbortSignal) {
+  const names = modelNames();
+  const auth = headers();
+
   const body = JSON.stringify({
-    model: modelName(),
+    model: names[0],
+    ...(names.length > 1 ? { models: names } : {}),
     messages,
     ...(tools.length ? { tools } : {}),
     stream: true,
     max_tokens: limits.maxOutputTokens,
     temperature: 0.6,
     reasoning: { effort: 'low', exclude: true },
+    provider: { sort: 'throughput' },
   });
 
   for (let attempt = 0; ; attempt += 1) {
-    const deadline = AbortSignal.timeout(limits.modelTimeoutMs);
+    const watch = watchdog(limits.modelConnectMs, signal);
+    let response: Response;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: headers(),
-      signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
-      body,
-    });
+    try {
+      response = await fetch(endpoint, { method: 'POST', headers: auth, signal: watch.signal, body });
+    } catch (error) {
+      watch.stop();
+      if (signal?.aborted || attempt >= limits.maxModelRetries) throw asModelError(error);
+      await wait(backoff(attempt), signal);
+      continue;
+    }
 
-    if (response.ok && response.body) return response;
+    if (response.ok && response.body) {
+      watch.bump(limits.modelIdleMs);
+      return { response, body: response.body, watch };
+    }
+
+    watch.stop();
+    await response.body?.cancel().catch(() => {});
+
     if (!retryable.has(response.status) || attempt >= limits.maxModelRetries) {
       throw new ModelError(`model responded ${response.status}`, response.status);
     }
 
-    await wait(backoff(response, attempt), signal);
+    await wait(backoff(attempt, response.headers.get('retry-after')), signal);
   }
 }
 
@@ -132,44 +205,49 @@ export async function streamModel(
   onText: (delta: string) => void,
   signal?: AbortSignal,
 ): Promise<ModelTurn> {
-  const response = await openStream(messages, tools, signal);
-  if (!response.body) throw new ModelError('model sent no body');
-
-  const reader = response.body.getReader();
+  const { body, watch } = await openStream(messages, tools, signal);
+  const reader = body.getReader();
   const decoder = new TextDecoder();
   const toolCalls: ToolCall[] = [];
   let content = '';
   let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() ?? '';
+      watch.bump(limits.modelIdleMs);
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data:')) continue;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
 
-      const payload = trimmed.slice(5).trim();
-      if (!payload || payload === '[DONE]') continue;
+        const payload = trimmed.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
 
-      let delta: Delta | undefined;
-      try {
-        delta = (JSON.parse(payload) as { choices?: { delta?: Delta }[] }).choices?.[0]?.delta;
-      } catch {
-        continue;
+        let delta: Delta | undefined;
+        try {
+          delta = (JSON.parse(payload) as { choices?: { delta?: Delta }[] }).choices?.[0]?.delta;
+        } catch {
+          continue;
+        }
+
+        if (!delta) continue;
+        if (delta.content) {
+          content += delta.content;
+          onText(delta.content);
+        }
+        if (delta.tool_calls) mergeToolCalls(toolCalls, delta);
       }
-
-      if (!delta) continue;
-      if (delta.content) {
-        content += delta.content;
-        onText(delta.content);
-      }
-      if (delta.tool_calls) mergeToolCalls(toolCalls, delta);
     }
+  } catch (error) {
+    throw asModelError(error);
+  } finally {
+    watch.stop();
   }
 
   return { content, toolCalls: toolCalls.filter((call) => call.function.name) };

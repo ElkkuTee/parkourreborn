@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { limits } from '@/lib/reborn-ai/limits';
 import { knowledgeRetriever } from '@/lib/reborn-ai/knowledge-retriever';
 import { showSchema, verifyBlocks } from '@/lib/reborn-ai/blocks';
+import type { BlockInput } from '@/lib/reborn-ai/blocks';
 import { hideRecipes, parseRecipes, recipeBlock } from '@/lib/reborn-ai/recipes';
 import type { Recipe } from '@/lib/reborn-ai/recipes';
 import type { AssistantBlock } from '@/lib/reborn-ai/types';
@@ -181,12 +182,39 @@ function bestMatches<T>(scored: { item: T; hit: number }[]) {
   return scored.filter((entry) => entry.hit === best).map((entry) => entry.item);
 }
 
-export function createToolkit(origin: string, signal?: AbortSignal) {
+// Every tool hop is an http round trip back into our own api, so the answers live
+// on the instance for a bit. One person asking three things in a row only pays once.
+const store = new Map<string, { at: number; value: Promise<unknown> }>();
+
+function shared<T>(path: string, load: () => Promise<T>): Promise<T> {
+  const hit = store.get(path);
+  if (hit && Date.now() - hit.at < limits.dataCacheMs) return hit.value as Promise<T>;
+
+  const value: Promise<T> = load().catch((error) => {
+    if (store.get(path)?.value === value) store.delete(path);
+    throw error;
+  });
+
+  store.set(path, { at: Date.now(), value });
+  return value;
+}
+
+// Knowledge files are baked into the bundle, so parsing them twice is pure waste.
+let recipeCache: Promise<Recipe[]> | null = null;
+
+function getRecipes() {
+  if (!recipeCache) recipeCache = knowledgeRetriever.docs().then(parseRecipes).catch(() => [] as Recipe[]);
+  return recipeCache;
+}
+
+const maybe = <T>(want: boolean, get: () => Promise<T[]>): Promise<T[]> => (
+  want ? get().catch(() => [] as T[]) : Promise.resolve([] as T[])
+);
+
+export function createToolkit(origin: string) {
   const seenUrls = new Set<string>();
   const blocks: AssistantBlock[] = [];
   const autoBlocks: AssistantBlock[] = [];
-  const cache = new Map<string, Promise<unknown>>();
-  let recipes: Promise<Recipe[]> | null = null;
 
   const suggest = (found: number, make: () => AssistantBlock[]) => {
     if (found < 1 || autoBlocks.length >= limits.maxAutoBlocks) return;
@@ -201,24 +229,17 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
     for (const match of text.matchAll(/https?:\/\/[^\s)>\]]+/g)) seenUrls.add(match[0]);
   };
 
-  async function load<T>(path: string, pick: (data: unknown) => T): Promise<T> {
-    if (!cache.has(path)) {
-      cache.set(path, (async () => {
-        const deadline = AbortSignal.timeout(limits.toolTimeoutMs);
+  function load<T>(path: string, pick: (data: unknown) => T): Promise<T> {
+    const url = `${origin}${path}`;
 
-        const response = await fetch(`${origin}${path}`, {
-          cache: 'no-store',
-          signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
-        });
-        if (!response.ok) throw new Error(`${path} failed`);
-        return pick(await response.json());
-      })().catch((error) => {
-        cache.delete(path);
-        throw error;
-      }));
-    }
-
-    return cache.get(path) as Promise<T>;
+    return shared(url, async () => {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(limits.toolTimeoutMs),
+      });
+      if (!response.ok) throw new Error(`${path} failed`);
+      return pick(await response.json());
+    });
   }
 
   const getTechs = () => load('/api/techs', (data) => (Array.isArray(data) ? data as MovementEntry[] : []));
@@ -238,11 +259,6 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
         playerScore: typeof item.player_score === 'number' ? item.player_score : null,
       }));
   });
-
-  const getRecipes = () => {
-    if (!recipes) recipes = knowledgeRetriever.docs().then(parseRecipes).catch(() => [] as Recipe[]);
-    return recipes;
-  };
 
   // A crafting question ends up as a grid whether or not the model remembers to ask for one.
   // Searching the same recipe under two names is normal, so the same card must not stack up.
@@ -429,18 +445,20 @@ export function createToolkit(origin: string, signal?: AbortSignal) {
   }
 
   async function runShow(args: z.infer<typeof schemas.show>) {
-    const [techs, trials, records, resources, known] = await Promise.all([
-      getTechs().catch(() => [] as MovementEntry[]),
-      getTrials().catch(() => [] as TimeTrial[]),
-      getRecords().catch(() => [] as WorldRecord[]),
-      getResources().catch(() => [] as CommunityResource[]),
-      getRecipes(),
-    ]);
-
     const room = limits.maxBlocks - blocks.length;
     if (room <= 0) return { shown: 0, dropped: args.blocks.length, note: 'block limit reached' };
 
-    const verified = verifyBlocks(args.blocks.slice(0, room), { techs, trials, records, resources, recipes: known, seenUrls });
+    const wanted = args.blocks.slice(0, room);
+    const needs = (type: BlockInput['type']) => wanted.some((block) => block.type === type);
+
+    const [techs, trials, records, known] = await Promise.all([
+      maybe(needs('tech'), getTechs),
+      maybe(needs('time_trial'), getTrials),
+      maybe(needs('world_record'), getRecords),
+      maybe(needs('recipe'), getRecipes),
+    ]);
+
+    const verified = verifyBlocks(wanted, { techs, trials, records, recipes: known, seenUrls });
     blocks.push(...verified.blocks);
 
     return {

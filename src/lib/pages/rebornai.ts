@@ -47,13 +47,16 @@ export async function streamRebornAi(messages: ChatMessage[], signal: AbortSigna
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let ended = false;
 
   const flush = (chunk: string) => {
     for (const line of chunk.split('\n')) {
       if (!line.startsWith('data:')) continue;
 
       try {
-        onEvent(JSON.parse(line.slice(5).trim()) as ChatEvent);
+        const event = JSON.parse(line.slice(5).trim()) as ChatEvent;
+        if (event.type === 'done' || event.type === 'error') ended = true;
+        onEvent(event);
       } catch {}
     }
   };
@@ -69,4 +72,8 @@ export async function streamRebornAi(messages: ChatMessage[], signal: AbortSigna
   }
 
   if (buffer.trim()) flush(buffer);
+
+  // A stream that stops without saying done got killed somewhere in between.
+  // Without this the half written reply just disappears and nothing explains why.
+  if (!ended) onEvent({ type: 'error', message: 'that answer got cut off, try again' });
 }
