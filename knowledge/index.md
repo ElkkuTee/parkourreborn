@@ -208,3 +208,7 @@ tags:
 * [Time Trials Overview](time-trials/time-trials-overview.md)
 * [Unreleased Time Trials](time-trials/unreleased-time-trials.md)
 
+## Players
+
+* [ElkkuT](players/elkkut.md)
+* [RumbleStumpleton](players/rumblestumpleton.md)
