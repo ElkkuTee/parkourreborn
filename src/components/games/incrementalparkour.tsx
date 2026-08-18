@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Maximize, Minimize } from 'lucide-react';
+import SaveMerge from '@/components/games/save-merge';
+import { useParkourSave } from '@/lib/use-parkour-save';
 
 const TOP_EDGE = 72;
 
@@ -9,10 +11,12 @@ export default function IncrementalParkour() {
   const boxRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const barTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [playing, setPlaying] = useState(false);
   const [full, setFull] = useState(false);
   const [peeking, setPeeking] = useState(false);
   const [atTop, setAtTop] = useState(false);
+  const { status, busy, start, choose } = useParkourSave(frameRef);
+  const playing = status === 'ready';
+  const waiting = busy || status === 'loading' || status === 'merge';
 
   function peek() {
     setPeeking(true);
@@ -81,8 +85,8 @@ export default function IncrementalParkour() {
   }
 
   function play() {
-    setPlaying(true);
     peek();
+    void start();
   }
 
   return (
@@ -105,11 +109,13 @@ export default function IncrementalParkour() {
           </div>
         </div>
       ) : (
-        <button className="ip-start" type="button" onClick={play}>
-          <strong>Play</strong>
-          <small>loads about 12 mb</small>
+        <button className="ip-start" type="button" onClick={play} disabled={waiting}>
+          <strong>{waiting ? 'Loading' : 'Play'}</strong>
+          <small>{status === 'error' ? 'save did not load, tap to retry' : 'loads about 12 mb'}</small>
         </button>
       )}
+
+      {status === 'merge' ? <SaveMerge onPick={(choice) => void choose(choice)} /> : null}
     </section>
   );
 }

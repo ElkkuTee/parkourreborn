@@ -1716,6 +1716,23 @@ button {
   outline-offset: 2px;
 }
 
+.ip-merge__note {
+  gap: 6px;
+}
+
+.ip-merge__note strong {
+  color: var(--hub-text-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ip-merge__note p {
+  margin: 0;
+  color: var(--hub-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .xp-layout,
 .xp-advanced {
   display: grid;

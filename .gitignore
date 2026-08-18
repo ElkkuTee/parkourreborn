@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 CLAUDE.md
 .vercel
 .env*
+docs

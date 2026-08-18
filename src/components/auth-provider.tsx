@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadDiscord = async (nextUser: User) => {
     const token = await nextUser.getIdToken();
+    await fetch('/api/auth/session', { method: 'POST', headers: { authorization: `Bearer ${token}` } }).catch(() => {});
+
     const response = await fetch('/api/auth/me', {
       headers: { authorization: `Bearer ${token}` },
     });
@@ -145,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError('');
 
     try {
+      await fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
       await signOut(getClientAuth());
       setUser(null);
       setDiscord(null);

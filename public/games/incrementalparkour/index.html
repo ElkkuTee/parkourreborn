@@ -29,6 +29,7 @@
   <body>
     <canvas id="unity-canvas" tabindex="-1"></canvas>
     <div id="load"><span>Loading</span><div id="bar"><i></i></div></div>
+    <script src="save-bridge.js"></script>
     <script src="1.0.0.loader.js"></script>
     <script>
       var load = document.getElementById('load');
@@ -50,7 +51,8 @@
         productVersion: '1.0',
       }, function (progress) {
         fill.style.width = Math.round(progress * 100) + '%';
-      }).then(function () {
+      }).then(function (instance) {
+        window.ParkourSave.attach(instance);
         load.classList.add('hide');
         canvas.focus();
       }).catch(function (message) {
