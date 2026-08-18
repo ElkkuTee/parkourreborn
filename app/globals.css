@@ -1567,6 +1567,155 @@ button {
   }
 }
 
+.ip-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--hub-game-line);
+  border-radius: 4px;
+  background: var(--hub-media-bg);
+  box-shadow: var(--hub-shadow-panel);
+}
+
+.ip-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ip-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.ip-frame.is-full {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  background: #05080d;
+  box-shadow: none;
+}
+
+.ip-frame.is-full .ip-stage {
+  width: min(100%, calc(100vh * 16 / 9));
+  width: min(100%, calc(100dvh * 16 / 9));
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.ip-start {
+  position: absolute;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 20px;
+  border: 0;
+  background: var(--hub-card-bg);
+  color: var(--hub-text);
+  cursor: pointer;
+  gap: 10px;
+  inset: 0;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.ip-start:hover {
+  background: var(--hub-card-hover-bg);
+  color: var(--hub-text-strong);
+}
+
+.ip-start strong {
+  font-family: 'Jura', sans-serif;
+  font-size: clamp(30px, 5vw, 48px);
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.ip-start small {
+  color: var(--hub-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.ip-start:focus-visible {
+  outline: 2px solid var(--hub-focus);
+  outline-offset: -4px;
+}
+
+.ip-top {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(2, 4, 9, 0.72), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.ip-frame:hover .ip-top,
+.ip-frame:focus-within .ip-top,
+.ip-frame.is-peek .ip-top {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ip-frame.is-full .ip-top {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+.ip-frame.is-full.is-top .ip-top,
+.ip-frame.is-full.is-peek .ip-top {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ip-full {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid var(--hub-accent-line);
+  border-radius: 3px;
+  background: rgba(2, 4, 9, 0.68);
+  color: var(--hub-text);
+  cursor: pointer;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.ip-full:hover,
+.ip-full:focus-visible {
+  border-color: var(--hub-accent-line-strong);
+  background: rgba(2, 4, 9, 0.88);
+  color: var(--hub-text-strong);
+}
+
+.ip-full:focus-visible {
+  outline: 2px solid var(--hub-focus);
+  outline-offset: 2px;
+}
+
 .xp-layout,
 .xp-advanced {
   display: grid;

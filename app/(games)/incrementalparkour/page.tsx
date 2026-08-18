@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ComingSoon from '@/components/coming-soon';
+import IncrementalParkour from '@/components/games/incrementalparkour';
 import PageHero from '@/components/page-hero';
 import { Button } from '@/components/ui/button';
 import { images } from '@/lib/assets';
@@ -19,7 +19,7 @@ export default function Page() {
             <Link href="/">Back</Link>
           </Button>
           <PageHero eyebrow="Games" title="Incremental Parkour" image={images.backgrounds.games.incrementalparkour} />
-          <ComingSoon />
+          <IncrementalParkour />
         </div>
       </section>
     </main>
