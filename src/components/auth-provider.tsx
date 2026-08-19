@@ -6,10 +6,12 @@ import { browserLocalPersistence, onAuthStateChanged, setPersistence, signInWith
 import type { User } from 'firebase/auth';
 import { getClientAuth, hasFirebaseConfig } from '@/lib/firebase';
 import type { DiscordProfile } from '@/lib/discord';
+import type { AccountMeta } from '@/lib/pages/account';
 
 type AuthContextValue = {
   user: User | null;
   discord: DiscordProfile | null;
+  account: AccountMeta | null;
   loading: boolean;
   busy: boolean;
   error: string;
@@ -33,6 +35,7 @@ const authMessage = (error: unknown) => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [discord, setDiscord] = useState<DiscordProfile | null>(null);
+  const [account, setAccount] = useState<AccountMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -46,8 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) throw new Error('Could not load Discord profile');
-    const data = await response.json() as { discord: DiscordProfile | null };
+    const data = await response.json() as { discord: DiscordProfile | null; account: AccountMeta | null };
     setDiscord(data.discord);
+    setAccount(data.account);
   };
 
   useEffect(() => {
@@ -68,13 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await signOut(auth);
             setUser(null);
             setDiscord(null);
+            setAccount(null);
             return;
           }
 
           setUser(nextUser);
 
           if (nextUser) await loadDiscord(nextUser);
-          else setDiscord(null);
+          else {
+            setDiscord(null);
+            setAccount(null);
+          }
         } catch (nextError) {
           setError(authMessage(nextError));
         } finally {
@@ -140,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const current = getClientAuth().currentUser;
     if (!current) {
       setDiscord(null);
+      setAccount(null);
       return;
     }
 
@@ -151,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signOut(getClientAuth());
       setUser(null);
       setDiscord(null);
+      setAccount(null);
     } catch (nextError) {
       setError(authMessage(nextError));
     } finally {
@@ -161,13 +171,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     user,
     discord,
+    account,
     loading,
     busy,
     error,
     login,
     logout,
     clearError: () => setError(''),
-  }), [busy, discord, error, loading, user]);
+  }), [account, busy, discord, error, loading, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

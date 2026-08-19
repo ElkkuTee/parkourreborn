@@ -53,7 +53,7 @@ const features: Feature[] = [
 const columnsFor = (count: number) => (count === 4 ? 2 : Math.min(count, 3));
 
 const frameWidth = (columns: number) => {
-  if (window.innerWidth <= 532) return columns === 1 ? 188 : 365;
+  if (window.innerWidth <= 532) return columns === 1 ? 188 : 368;
   if (window.innerWidth <= 900) return columns === 1 ? 192 : 370;
   return columns === 1 ? 216 : columns === 2 ? 416 : 616;
 };

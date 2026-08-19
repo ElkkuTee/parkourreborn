@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { BookOpen, Clock, ClipboardList, ArrowBigLeft, Search } from 'lucide-react';
+import { BookOpen, Clock, ClipboardList, ArrowBigLeft, House, Search } from 'lucide-react';
 import { images } from '@/lib/assets';
 import MenuAuth from '@/components/menu-auth';
 import { Button } from '@/components/ui/button';
@@ -84,10 +84,13 @@ export default function Menu() {
           <Image src={images.logo.main} alt="" width={34} height={34} />
           <span>PR Hub</span>
         </div>
+
+        <Link href="/" className="side-menu__link side-menu__link--home" tabIndex={-1} onClick={() => setOpen(false)}>
+          <House className="side-menu__icon size-8" aria-hidden="true" />
+          <span>Home</span>
+        </Link>
+
         <nav className="side-menu__nav" aria-label="Main menu">
-          <Link href="/" className="side-menu__link side-menu__link--home" tabIndex={-1} onClick={() => setOpen(false)}>
-            Home
-          </Link>
           {mainLinks.map(({ href, icon: Icon, name }) => (
             <Link
               href={href}
