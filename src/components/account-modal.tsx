@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +24,10 @@ import type { GameStats } from '@/lib/pages/account-stats';
 type AccountModalProps = {
   onClose: () => void;
 };
+
+const insideMenu = (node: EventTarget | null) => (
+  node instanceof Element && !!node.closest('[data-radix-popper-content-wrapper], [data-slot="dropdown-menu-content"]')
+);
 
 type StatsState = {
   status: 'loading' | 'ready' | 'empty' | 'error';
@@ -87,7 +92,7 @@ function Stats() {
 
   return (
     <div className="account-stats" aria-busy={state.status === 'loading'}>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
         <div className={`account-picker${open ? ' is-open' : ''}`}>
           <span id="account-source-label">Game or tool</span>
           <DropdownMenuTrigger asChild>
@@ -114,7 +119,7 @@ function Stats() {
         <>
           <ScreenReaderLoading>Loading stats...</ScreenReaderLoading>
           <div className="account-tiles" aria-hidden="true">
-            {[0, 1, 2, 3].map((key) => <Skeleton className="account-tile-skeleton" key={key} />)}
+            {[0, 1, 2].map((key) => <Skeleton className="account-tile-skeleton" key={key} />)}
           </div>
         </>
       ) : null}
@@ -176,7 +181,13 @@ export default function AccountModal({ onClose }: AccountModalProps) {
     <HubDialog onOpenChange={(next) => {
       if (!next) onClose();
     }}>
-      <HubDialogContent className="account-dialog" aria-label="Account">
+      <HubDialogContent
+        className="account-dialog"
+        aria-label="Account"
+        onInteractOutside={(event) => {
+          if (insideMenu(event.detail.originalEvent.target)) event.preventDefault();
+        }}
+      >
         <header className="tt-dialog__head">
           <div>
             <span>Profile</span>
@@ -213,6 +224,9 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                     <strong>{name}</strong>
                     <small>@{discord.username}</small>
                   </span>
+                  <Button className="account-edit" type="button" aria-label="Change username">
+                    <Pencil aria-hidden="true" />
+                  </Button>
                 </div>
 
                 <dl className="account-facts">
@@ -223,10 +237,6 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                   <div>
                     <dt>Last login</dt>
                     <dd>{formatDateTime(account?.lastLogin)}</dd>
-                  </div>
-                  <div>
-                    <dt>Discord linked</dt>
-                    <dd>{formatDate(discord.linkedAt)}</dd>
                   </div>
                   <div>
                     <dt>Discord ID</dt>

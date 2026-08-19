@@ -70,14 +70,12 @@ async function loadIncremental(token: string): Promise<GameStats | null> {
 
   const credits = bag(save.credits);
   const trials = (Array.isArray(save.trials) ? save.trials : []).map(bag).filter((trial) => typeof trial.name === 'string' && trial.name);
-  const cleared = trials.filter((trial) => best(trial.bestTimeSeconds) !== null);
 
   return {
     tiles: [
       { label: 'Credits', value: count(num(credits.balance)) },
       { label: 'Lifetime credits', value: count(num(credits.lifetimeEarned)) },
       { label: 'Playtime', value: playtime(num(save.playtimeSeconds)) },
-      { label: 'Trials cleared', value: `${cleared.length} / ${trials.length}` },
     ],
     tables: trials.length ? [{
       title: 'Time trials',
