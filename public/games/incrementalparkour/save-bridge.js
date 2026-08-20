@@ -1,5 +1,4 @@
 (function () {
-  var GUEST_KEY = 'parkour:save:guest';
   var origin = window.location.origin;
   var host = window.parent !== window ? window.parent : null;
   var instance = null;
@@ -32,26 +31,10 @@
     if (host) host.postMessage(message, origin);
   }
 
-  function readLocal() {
-    try {
-      return window.localStorage.getItem(GUEST_KEY) || '';
-    } catch (error) {
-      return '';
-    }
-  }
-
-  function writeLocal(json) {
-    try {
-      window.localStorage.setItem(GUEST_KEY, json);
-    } catch (error) {
-      console.warn('ParkourSave local write failed', error);
-    }
-  }
-
   window.ParkourSave = {
     requestProfile: function () {
       if (!host) {
-        answer(readLocal());
+        answer('');
         return;
       }
 
@@ -65,10 +48,7 @@
     },
 
     push: function (json) {
-      if (!host) {
-        writeLocal(json);
-        return;
-      }
+      if (!host) return;
 
       post({ type: 'parkour-save:push', json: json });
     },

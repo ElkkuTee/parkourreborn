@@ -1,6 +1,3 @@
-export const GUEST_KEY = 'parkour:save:guest';
-export const MERGED_KEY = 'parkour:save:merged';
-
 export type CloudSave = {
   json: string;
   rev: number;
@@ -12,59 +9,7 @@ export type PutResult = {
   json: string;
 };
 
-const store = () => (typeof window === 'undefined' ? null : window.localStorage);
 const text = (value: unknown) => (value === undefined || value === null ? '' : JSON.stringify(value));
-
-export function readGuest() {
-  try {
-    return store()?.getItem(GUEST_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-export function writeGuest(json: string) {
-  try {
-    store()?.setItem(GUEST_KEY, json);
-  } catch {
-    return;
-  }
-}
-
-export function clearGuest() {
-  try {
-    store()?.removeItem(GUEST_KEY);
-  } catch {
-    return;
-  }
-}
-
-export function readMerged() {
-  try {
-    return store()?.getItem(MERGED_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-export function markMerged(discordId: string) {
-  try {
-    store()?.setItem(MERGED_KEY, discordId);
-  } catch {
-    return;
-  }
-}
-
-export function hasProgress(json: string) {
-  if (!json) return false;
-
-  try {
-    const save = JSON.parse(json) as { credits?: { lifetimeEarned?: unknown } };
-    return Number(save?.credits?.lifetimeEarned) > 0;
-  } catch {
-    return false;
-  }
-}
 
 export async function fetchGameSave(token: string): Promise<CloudSave | null> {
   const response = await fetch('/api/game/save', {

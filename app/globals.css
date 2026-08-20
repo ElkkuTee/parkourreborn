@@ -1738,21 +1738,12 @@ button {
   outline-offset: 2px;
 }
 
-.ip-merge__note {
-  gap: 6px;
-}
-
-.ip-merge__note strong {
-  color: var(--hub-text-strong);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.ip-merge__note p {
-  margin: 0;
-  color: var(--hub-muted);
-  font-size: 12px;
-  line-height: 1.5;
+.ip-start__tip {
+  padding: 7px 12px;
+  border: 1px solid var(--hub-accent-line-soft);
+  border-radius: 3px;
+  background: var(--hub-accent-bg);
+  color: var(--hub-text);
 }
 
 .xp-layout,
