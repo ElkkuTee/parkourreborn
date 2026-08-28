@@ -1078,6 +1078,25 @@ button {
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
 }
 
+.feature-nav__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  border: 1px solid var(--hub-accent-line-strong);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(54, 185, 236, 0.3), rgba(54, 185, 236, 0.14));
+  color: var(--hub-text-strong);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 1px rgba(5, 8, 13, 0.45), 0 4px 12px var(--hub-accent-glow-soft);
+  pointer-events: none;
+}
+
 .links-panel {
   position: relative;
   padding: 16px;
@@ -1284,6 +1303,13 @@ button {
 
   .feature-nav__content strong {
     font-size: 12px;
+  }
+
+  .feature-nav__badge {
+    top: 6px;
+    right: 6px;
+    padding: 2px 5px;
+    font-size: 8px;
   }
 
   .link-grid--official,

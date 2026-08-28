@@ -10,6 +10,7 @@ type NavItem = {
   title: string;
   image: string;
   href: string;
+  badge?: string;
 };
 
 type Feature = {
@@ -34,7 +35,7 @@ const features: Feature[] = [
     bg: images.backgrounds.games.bg,
     items: [
       { title: 'Parkour Guessr', image: images.backgrounds.games.parkourguessr, href: '/parkourguessr' },
-      { title: 'Incremental Parkour', image: images.backgrounds.games.incrementalparkour, href: '/incrementalparkour' },
+      { title: 'Incremental Parkour', image: images.backgrounds.games.incrementalparkour, href: '/incrementalparkour', badge: 'New' },
       { title: 'Bag Opening Simulator', image: images.backgrounds.games.bagopensimulator, href: '/bagopensimulator' },
       { title: 'Parkour MC', image: images.backgrounds.games.parkourmc, href: '/parkourmc' },
     ],
@@ -165,6 +166,7 @@ export default function FeatureNav() {
                           <span className="feature-nav__shade" />
                           <span className="feature-nav__content">
                             <strong>{item.title}</strong>
+                            {item.badge ? <span className="feature-nav__badge">{item.badge}</span> : null}
                           </span>
                         </Link>
                       ))}
