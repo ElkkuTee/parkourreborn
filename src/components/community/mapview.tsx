@@ -222,14 +222,14 @@ export default function MapViewer({ image, open, onClose }: MapViewerProps) {
     }}>
       <DialogPortal>
         <DialogPrimitive.Content className="map-modal" aria-label="Map viewer" ref={modalRef} tabIndex={-1}>
-          <DialogTitle className="sr-only">Map viewer</DialogTitle>
-          <div className="map-modal__bar">
-            <Button type="button" onClick={() => setClampedZoom(zoom * 1.18)}>Zoom In</Button>
-            <Button type="button" onClick={() => setClampedZoom(zoom / 1.18)}>Zoom Out</Button>
-            <Button type="button" onClick={reset}>Reset</Button>
-            <span>{Math.round(zoom * 100)}%</span>
-          </div>
-          <div className="map-modal__close-slot">
+          <div className="tt-dialog__head map-modal__bar">
+            <DialogTitle asChild><h2>Map</h2></DialogTitle>
+            <div className="map-modal__tools">
+              <Button type="button" onClick={() => setClampedZoom(zoom * 1.18)}>Zoom In</Button>
+              <Button type="button" onClick={() => setClampedZoom(zoom / 1.18)}>Zoom Out</Button>
+              <Button type="button" onClick={reset}>Reset</Button>
+              <span>{Math.round(zoom * 100)}%</span>
+            </div>
             <DialogClose asChild>
               <Button className="tt-close" type="button" aria-label="Close map">
                 <span className="tt-close__icon" />

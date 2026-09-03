@@ -189,12 +189,9 @@ export default function AccountModal({ onClose }: AccountModalProps) {
         }}
       >
         <header className="tt-dialog__head">
-          <div>
-            <span>Profile</span>
-            <DialogTitle asChild>
-              <h2>Account</h2>
-            </DialogTitle>
-          </div>
+          <DialogTitle asChild>
+            <h2>Account</h2>
+          </DialogTitle>
           <DialogClose asChild>
             <Button className="tt-close" type="button" aria-label="Close account">
               <span className="tt-close__icon" />

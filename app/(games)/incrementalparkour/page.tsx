@@ -18,7 +18,7 @@ export default function Page() {
           <Button asChild className="back-btn">
             <Link href="/">Back</Link>
           </Button>
-          <PageHero eyebrow="Games" title="Incremental Parkour" image={images.backgrounds.games.incrementalparkour} />
+          <PageHero title="Incremental Parkour" image={images.backgrounds.games.incrementalparkour} />
           <IncrementalParkour />
         </div>
       </section>

@@ -18,7 +18,7 @@ export default function Page() {
           <Button asChild className="back-btn">
             <Link href="/">Back</Link>
           </Button>
-          <PageHero eyebrow="Tool" title="Reborn AI" image={images.backgrounds.tools.rebornai} />
+          <PageHero title="Reborn AI" image={images.backgrounds.tools.rebornai} />
           <RebornAi />
         </div>
       </section>

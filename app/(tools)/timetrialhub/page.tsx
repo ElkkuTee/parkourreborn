@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import PageHero from '@/components/page-hero';
 import TimeTrialHub from '@/components/tools/timetrialhub';
 import { Button } from '@/components/ui/button';
+import { images } from '@/lib/assets';
 
 export const metadata: Metadata = {
   title: 'Time Trial Hub',
@@ -21,6 +23,7 @@ export default function Page() {
               <a href="https://wasans.tully.sh" target="_blank" rel="noopener noreferrer">Official Scoring Website</a>
             </Button>
           </div>
+          <PageHero title="Time Trial Hub" image={images.backgrounds.tools.timetrialhub} />
           <TimeTrialHub />
         </div>
       </section>

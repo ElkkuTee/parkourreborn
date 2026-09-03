@@ -18,7 +18,7 @@ export default function Page() {
           <Button asChild className="back-btn">
             <Link href="/">Back</Link>
           </Button>
-          <PageHero eyebrow="Community" title="Search" image={images.backgrounds.community.search} />
+          <PageHero title="Search" image={images.backgrounds.community.search} />
           <CommunitySearch />
         </div>
       </section>

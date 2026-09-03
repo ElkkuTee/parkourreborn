@@ -85,14 +85,8 @@ function ResourceModal({ item, onClose }: ResourceModalProps) {
     }}>
       <HubDialogContent className={`tt-dialog search-dialog search-dialog--${item.type}`} aria-label={item.name}>
         <header className="tt-dialog__head">
-          <div>
-            <span>{labels[item.type]}</span>
-            <DialogTitle asChild><h2>{item.name}</h2></DialogTitle>
-          </div>
+          <DialogTitle asChild><h2>{item.name}</h2></DialogTitle>
           <div className="search-head-actions">
-            <DialogClose asChild>
-              <Button className="tt-close" type="button" aria-label="Close"><span className="tt-close__icon" /></Button>
-            </DialogClose>
             {item.type === 'gif' ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -101,30 +95,37 @@ function ResourceModal({ item, onClose }: ResourceModalProps) {
                 <TooltipContent>Copy GIF link</TooltipContent>
               </Tooltip>
             ) : null}
+            <DialogClose asChild>
+              <Button className="tt-close" type="button" aria-label="Close"><span className="tt-close__icon" /></Button>
+            </DialogClose>
           </div>
         </header>
 
-        {item.type === 'gif' ? (
-          <div className="search-gif">
-            {canOpen ? (
-              <a className="search-gif__link" href={openURL} target="_blank" rel="noopener noreferrer">
-                <img src={item.link} alt={item.name} />
-              </a>
-            ) : <img src={item.link} alt={item.name} />}
-          </div>
-        ) : (
-          <div className="search-info">
-            {item.description ? <p>{item.description}</p> : <p>No description yet.</p>}
-            {canOpen ? <a className="search-url" href={item.link} target="_blank" rel="noopener noreferrer">{item.link}</a> : <span className="search-url">Link looks broken.</span>}
-            {canOpen ? (
-              <Button asChild className="account-action search-action">
-                <a href={item.link} target="_blank" rel="noopener noreferrer" download={item.type === 'file' && item.downloadable ? '' : undefined}>
-                  {action}
+        <div className="tt-dialog__body">
+          <div className="tt-meta"><span>{labels[item.type]}</span></div>
+
+          {item.type === 'gif' ? (
+            <div className="search-gif">
+              {canOpen ? (
+                <a className="search-gif__link" href={openURL} target="_blank" rel="noopener noreferrer">
+                  <img src={item.link} alt={item.name} />
                 </a>
-              </Button>
-            ) : null}
-          </div>
-        )}
+              ) : <img src={item.link} alt={item.name} />}
+            </div>
+          ) : (
+            <div className="search-info">
+              {item.description ? <p>{item.description}</p> : <p>No description yet.</p>}
+              {canOpen ? <a className="search-url" href={item.link} target="_blank" rel="noopener noreferrer">{item.link}</a> : <span className="search-url">Link looks broken.</span>}
+              {canOpen ? (
+                <Button asChild className="account-action search-action">
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" download={item.type === 'file' && item.downloadable ? '' : undefined}>
+                    {action}
+                  </a>
+                </Button>
+              ) : null}
+            </div>
+          )}
+        </div>
       </HubDialogContent>
     </HubDialog>
   );

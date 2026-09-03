@@ -23,7 +23,7 @@ export default function Page() {
               <a href="https://map.themirrorcafe.cc" target="_blank" rel="noopener noreferrer">Official Interactive Map</a>
             </Button>
           </div>
-          <PageHero eyebrow="Community" title="Map" image={images.backgrounds.community.map} />
+          <PageHero title="Map" image={images.backgrounds.community.map} />
           <MapCard image={images.elements.map.normal} />
         </div>
       </section>
