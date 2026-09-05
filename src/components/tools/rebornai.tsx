@@ -154,10 +154,12 @@ export default function RebornAi() {
     <div className="ai-page">
       <section className="ai-chat">
         <header className="ai-bar">
-          <span className="ai-bar__hash" aria-hidden="true">#</span>
-          <span className="ai-bar__name">reborn-ai</span>
-          <span className="ai-bar__split" aria-hidden="true" />
-          <span className="ai-bar__topic">techs, trials, records and whatever else</span>
+          <Avatar className="ai-bar__avatar">
+            <AvatarImage src={images.logo.ai} alt="" />
+            <AvatarFallback>R</AvatarFallback>
+          </Avatar>
+          <span className="ai-bar__name">Reborn AI</span>
+          <span className="ai-tag">BOT</span>
           <Button className="ai-bar__reset" type="button" aria-label="Clear chat" disabled={!entries.length || busy} onClick={reset}>
             <RotateCcw aria-hidden="true" />
           </Button>
@@ -175,8 +177,8 @@ export default function RebornAi() {
         >
           <div className="ai-intro">
             <span className="ai-intro__mark" style={{ backgroundImage: `url(${images.logo.ai})` }} aria-hidden="true" />
-            <h2>#reborn-ai</h2>
-            <p>start of the channel. ask about techs, time trials, world records, crafting, or anything else in the game.</p>
+            <h2>Reborn AI</h2>
+            <p>ask about techs, time trials, world records, crafting, or anything else in the game.</p>
           </div>
 
           {entries.map((entry, index) => (
@@ -204,7 +206,7 @@ export default function RebornAi() {
               value={input}
               rows={1}
               maxLength={limits.maxMessageChars}
-              placeholder="message reborn ai"
+              placeholder="Message @Reborn AI"
               aria-label="Message Reborn AI"
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {
@@ -223,11 +225,7 @@ export default function RebornAi() {
               </Button>
             )}
           </div>
-          <p className="ai-hint">
-            <span><b>Enter</b> send</span>
-            <span><b>Shift+Enter</b> new line</span>
-            <span className="ai-hint__warn">can get things wrong, double check anything important</span>
-          </p>
+          <p className="ai-hint">can get things wrong, double check anything important</p>
         </form>
       </section>
     </div>

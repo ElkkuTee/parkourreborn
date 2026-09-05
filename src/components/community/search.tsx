@@ -4,13 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { CardSkeleton, ScreenReaderLoading, Skeleton } from '@/components/skeleton';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogTitle } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { HubDialog, HubDialogContent } from '@/components/ui/hub-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { fetchCommunityResources } from '@/lib/pages/search';
@@ -154,11 +147,9 @@ export default function CommunitySearch() {
   const [items, setItems] = useState<CommunityResource[]>([]);
   const [query, setQuery] = useState('');
   const [type, setType] = useState<CommunityResourceType>('gif');
-  const [typeOpen, setTypeOpen] = useState(false);
   const [selected, setSelected] = useState<CommunityResource | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const activeType = typeOptions.find((option) => option.id === type) ?? typeOptions[0];
 
   useEffect(() => {
     fetchCommunityResources()
@@ -183,37 +174,18 @@ export default function CommunitySearch() {
   return (
     <div className="search-page">
       <section className="search-panel">
-        <label className="search-field">
+        <label>
           <span>Search library</span>
           <input value={query} placeholder="Search..." onChange={(event) => setQuery(event.target.value)} />
         </label>
 
-        <DropdownMenu open={typeOpen} onOpenChange={setTypeOpen}>
-          <div className={`search-select${typeOpen ? ' is-open' : ''}`}>
-            <span id="search-type-label">Type</span>
-            <DropdownMenuTrigger asChild>
-              <Button className="search-select__button" type="button" aria-haspopup="listbox" aria-expanded={typeOpen} aria-labelledby="search-type-label search-type-value">
-                <strong id="search-type-value">{activeType.label}</strong>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="search-select__menu" sideOffset={7} align="start" aria-labelledby="search-type-label" style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
-              <DropdownMenuRadioGroup value={type} onValueChange={(value) => {
-                setType(value as CommunityResourceType);
-                setTypeOpen(false);
-              }}>
-                {typeOptions.map((option) => (
-                  <DropdownMenuRadioItem
-                    className={option.id === type ? 'is-on' : ''}
-                    value={option.id}
-                    key={option.id}
-                  >
-                    {option.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </div>
-        </DropdownMenu>
+        <div className="search-filters" aria-label="Resource type">
+          {typeOptions.map((option) => (
+            <Button className={type === option.id ? 'is-on' : ''} type="button" aria-pressed={type === option.id} key={option.id} onClick={() => setType(option.id)}>
+              {option.label}
+            </Button>
+          ))}
+        </div>
       </section>
 
       {error ? <div className="tt-note tt-note--bad">{error}</div> : null}

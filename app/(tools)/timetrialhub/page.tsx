@@ -17,7 +17,7 @@ export default function Page() {
         <div className="hub-container">
           <div className="tool-topbar">
             <Button asChild className="back-btn">
-              <Link href="/">Back</Link>
+              <Link href="/">&#8592; Back</Link>
             </Button>
             <Button asChild className="back-btn">
               <a href="https://wasans.tully.sh" target="_blank" rel="noopener noreferrer">Official Scoring Website</a>

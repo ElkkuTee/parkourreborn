@@ -16,7 +16,7 @@ export default function Page() {
       <section className="hub-page hub-page--wide">
         <div className="hub-container">
           <Button asChild className="back-btn">
-            <Link href="/">Back</Link>
+            <Link href="/">&#8592; Back</Link>
           </Button>
           <PageHero title="Incremental Parkour" image={images.backgrounds.games.incrementalparkour} />
           <IncrementalParkour />

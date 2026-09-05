@@ -94,13 +94,13 @@ function Stats() {
     <div className="account-stats" aria-busy={state.status === 'loading'}>
       <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
         <div className={`account-picker${open ? ' is-open' : ''}`}>
-          <span id="account-source-label">Game or tool</span>
+          <span id="account-source-label">Source</span>
           <DropdownMenuTrigger asChild>
             <Button className="account-picker__button" type="button" aria-haspopup="listbox" aria-expanded={open} aria-labelledby="account-source-label account-source-value">
               <strong id="account-source-value">{source.name}</strong>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="account-picker__menu" sideOffset={7} align="start" aria-labelledby="account-source-label" style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
+          <DropdownMenuContent className="account-picker__menu" sideOffset={5} align="start" aria-labelledby="account-source-label" style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
             <DropdownMenuRadioGroup value={pick} onValueChange={(value) => {
               setPick(value);
               setOpen(false);
@@ -188,20 +188,22 @@ export default function AccountModal({ onClose }: AccountModalProps) {
           if (insideMenu(event.detail.originalEvent.target)) event.preventDefault();
         }}
       >
-        <header className="tt-dialog__head">
-          <DialogTitle asChild>
-            <h2>Account</h2>
-          </DialogTitle>
+        <header className="account-head">
+          <div className="account-head__title">
+            <DialogTitle asChild>
+              <h2>Account</h2>
+            </DialogTitle>
+          </div>
           <DialogClose asChild>
-            <Button className="tt-close" type="button" aria-label="Close account">
-              <span className="tt-close__icon" />
+            <Button className="account-close" type="button" aria-label="Close account">
+              <span aria-hidden="true">&times;</span>
             </Button>
           </DialogClose>
         </header>
 
         <Tabs className="account-body" defaultValue="account">
-          <TabsList className="tt-tabs account-tabs" aria-label="Account sections">
-            <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsList className="account-tabs" aria-label="Account sections">
+            <TabsTrigger value="account">Profile</TabsTrigger>
             <TabsTrigger value="stats">Statistics</TabsTrigger>
           </TabsList>
 
@@ -222,33 +224,37 @@ export default function AccountModal({ onClose }: AccountModalProps) {
                     <small>@{discord.username}</small>
                   </span>
                   <Button className="account-edit" type="button" aria-label="Change username">
-                    <Pencil aria-hidden="true" />
+                    <Pencil className="size-3.5" aria-hidden="true" />
+                    <span aria-hidden="true">Edit</span>
                   </Button>
                 </div>
 
-                <dl className="account-facts">
-                  <div>
-                    <dt>Account created</dt>
-                    <dd>{formatDate(account?.createdAt)}</dd>
-                  </div>
-                  <div>
-                    <dt>Last login</dt>
-                    <dd>{formatDateTime(account?.lastLogin)}</dd>
-                  </div>
-                  <div>
-                    <dt>Discord ID</dt>
-                    <dd className="account-facts__mono">{discord.id}</dd>
-                  </div>
-                </dl>
+                <div className="account-group">
+                  <span className="account-group__label">Details</span>
+                  <dl className="account-facts">
+                    <div>
+                      <dt>Account created</dt>
+                      <dd>{formatDate(account?.createdAt)}</dd>
+                    </div>
+                    <div>
+                      <dt>Last login</dt>
+                      <dd>{formatDateTime(account?.lastLogin)}</dd>
+                    </div>
+                    <div>
+                      <dt>Discord ID</dt>
+                      <dd className="account-facts__mono">{discord.id}</dd>
+                    </div>
+                  </dl>
+                </div>
 
                 {error ? <span className="account-error">{error}</span> : null}
 
                 <div className="account-actions">
-                  <Button className="account-action" type="button" disabled={busy} onClick={logout}>
+                  <Button className="account-action account-action--go" type="button" disabled={busy} onClick={logout}>
                     Log out
                   </Button>
-                  <Button className="account-action account-action--risk" type="button" disabled>
-                    Deactivate account
+                  <Button className="account-action" type="button" disabled>
+                    Deactivate
                   </Button>
                   <Button className="account-action account-action--risk" type="button" disabled>
                     Delete account
